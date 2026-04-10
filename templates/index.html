@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}자료실 - 메인{% endblock %}
+
+{% block content %}
+<div class="text-center mb-5">
+    <h1 class="fw-bold">자료실</h1>
+    <p class="text-muted fs-5">투자정보, 부동산정보, 조합소식을 확인하세요</p>
+</div>
+
+<div class="row g-4 justify-content-center">
+    <div class="col-md-4">
+        <div class="card card-hover text-center h-100 border-0 shadow-sm">
+            <div class="card-body py-5">
+                <div class="fs-1 mb-3">📈</div>
+                <h4 class="card-title">투자정보</h4>
+                <p class="card-text text-muted">최신 투자 관련 자료를 확인하세요</p>
+                <a href="{{ url_for('article_list', category='investment') }}" class="btn btn-primary">바로가기</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card card-hover text-center h-100 border-0 shadow-sm">
+            <div class="card-body py-5">
+                <div class="fs-1 mb-3">🏠</div>
+                <h4 class="card-title">부동산정보</h4>
+                <p class="card-text text-muted">부동산 시장 동향과 정보를 확인하세요</p>
+                <a href="{{ url_for('article_list', category='realestate') }}" class="btn btn-success">바로가기</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card card-hover text-center h-100 border-0 shadow-sm">
+            <div class="card-body py-5">
+                <div class="fs-1 mb-3">📢</div>
+                <h4 class="card-title">조합소식</h4>
+                <p class="card-text text-muted">조합 관련 최신 소식을 확인하세요</p>
+                <a href="{{ url_for('article_list', category='news') }}" class="btn btn-info text-white">바로가기</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

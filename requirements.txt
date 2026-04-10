@@ -1,3 +1,6 @@
 Pillow
 opencv-python
 numpy
+Flask
+Flask-SQLAlchemy
+Flask-Login

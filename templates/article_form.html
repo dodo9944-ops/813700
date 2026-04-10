@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}{% if article %}게시글 수정{% else %}새 글 작성{% endif %} - 자료실{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <h3 class="mb-4">{% if article %}게시글 수정{% else %}새 글 작성{% endif %}</h3>
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="category" class="form-label">카테고리</label>
+                        <select class="form-select" id="category" name="category" required>
+                            {% for key, name in categories.items() %}
+                            <option value="{{ key }}" {% if article and article.category == key %}selected{% endif %}>{{ name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="title" class="form-label">제목</label>
+                        <input type="text" class="form-control" id="title" name="title" value="{{ article.title if article else '' }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="content" class="form-label">내용</label>
+                        <textarea class="form-control" id="content" name="content" rows="15" required>{{ article.content if article else '' }}</textarea>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">{% if article %}수정{% else %}등록{% endif %}</button>
+                        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">취소</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
