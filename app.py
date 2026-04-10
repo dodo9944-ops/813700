@@ -14,8 +14,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 # ── App Config ──────────────────────────────────────────────
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.urandom(24).hex()
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///jalorysil.db'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-me')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///jalorysil.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -231,7 +231,14 @@ def article_delete(article_id):
 
 # ── Run ─────────────────────────────────────────────────────
 
+with app.app_context():
+    db.create_all()
+    # 관리자 계정 자동 생성
+    if not User.query.filter_by(username='admin').first():
+        admin = User(username='admin', name='관리자', email='admin@example.com', is_admin=True)
+        admin.set_password(os.environ.get('ADMIN_PASSWORD', 'admin123'))
+        db.session.add(admin)
+        db.session.commit()
+
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))

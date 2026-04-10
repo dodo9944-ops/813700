@@ -4,3 +4,4 @@ numpy
 Flask
 Flask-SQLAlchemy
 Flask-Login
+gunicorn
