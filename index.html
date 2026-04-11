@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>이미지 처리 도구</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+            line-height: 1.6;
+            background: #f8f9fa;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            padding: 80px 20px;
+        }
+
+        .hero h1 {
+            font-size: 2.8rem;
+            margin-bottom: 16px;
+            font-weight: 700;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto 32px;
+        }
+
+        .hero-badges {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            backdrop-filter: blur(4px);
+        }
+
+        /* Features Section */
+        .features {
+            max-width: 900px;
+            margin: -40px auto 0;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 24px;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+            transition: transform 0.2s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .feature-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            margin-bottom: 16px;
+        }
+
+        .feature-icon.bw {
+            background: linear-gradient(135deg, #333 50%, #ccc 50%);
+        }
+
+        .feature-icon.bald {
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+        }
+
+        .feature-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 8px;
+        }
+
+        .feature-card p {
+            color: #666;
+            margin-bottom: 16px;
+        }
+
+        .code-block {
+            background: #1e1e2e;
+            color: #cdd6f4;
+            padding: 16px;
+            border-radius: 8px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+        }
+
+        .code-block .prompt {
+            color: #a6e3a1;
+        }
+
+        .code-block .comment {
+            color: #6c7086;
+        }
+
+        /* Install Section */
+        .install {
+            max-width: 900px;
+            margin: 48px auto;
+            padding: 0 20px;
+        }
+
+        .install-card {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        .install-card h2 {
+            font-size: 1.6rem;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .steps {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .step {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+        }
+
+        .step-number {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-content h4 {
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+
+        .step-content .code-block {
+            font-size: 0.85rem;
+        }
+
+        /* Requirements Table */
+        .requirements {
+            max-width: 900px;
+            margin: 0 auto 48px;
+            padding: 0 20px;
+        }
+
+        .req-card {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        .req-card h2 {
+            font-size: 1.6rem;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .req-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+        }
+
+        .req-item {
+            text-align: center;
+            padding: 20px;
+            border-radius: 12px;
+            background: #f8f9fa;
+        }
+
+        .req-item .name {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 4px;
+        }
+
+        .req-item .desc {
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 32px 20px;
+            color: #999;
+            font-size: 0.9rem;
+        }
+
+        footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .features {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <section class="hero">
+        <h1>이미지 처리 도구</h1>
+        <p>Python 기반의 간편한 이미지 처리 CLI 도구 모음. 흑백 변환과 대머리 효과를 한 줄 명령어로 적용하세요.</p>
+        <div class="hero-badges">
+            <span class="badge">Python 3</span>
+            <span class="badge">OpenCV</span>
+            <span class="badge">Pillow</span>
+            <span class="badge">CLI</span>
+        </div>
+    </section>
+
+    <section class="features">
+        <div class="feature-card">
+            <div class="feature-icon bw"></div>
+            <h3>흑백 변환</h3>
+            <p>컬러 이미지를 그레이스케일(흑백)로 변환합니다. Pillow 라이브러리를 사용하여 빠르고 정확하게 처리합니다.</p>
+            <div class="code-block">
+                <span class="comment"># 흑백 변환 실행</span><br>
+                <span class="prompt">$</span> python convert_to_black.py photo.jpg<br>
+                <span class="comment"># 결과: photo_black.jpg 생성</span>
+            </div>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon bald"></div>
+            <h3>대머리 효과</h3>
+            <p>얼굴을 자동 감지하고 머리카락 영역을 제거하여 자연스러운 대머리 효과를 적용합니다.</p>
+            <div class="code-block">
+                <span class="comment"># 대머리 효과 실행</span><br>
+                <span class="prompt">$</span> python make_bald.py photo.jpg<br>
+                <span class="comment"># 결과: photo_bald.jpg 생성</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="install">
+        <div class="install-card">
+            <h2>설치 방법</h2>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h4>저장소 클론</h4>
+                        <div class="code-block">
+                            <span class="prompt">$</span> git clone https://github.com/dodo9944-ops/813700.git<br>
+                            <span class="prompt">$</span> cd 813700
+                        </div>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h4>의존성 설치</h4>
+                        <div class="code-block">
+                            <span class="prompt">$</span> pip install -r requirements.txt
+                        </div>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h4>실행</h4>
+                        <div class="code-block">
+                            <span class="prompt">$</span> python convert_to_black.py 이미지.jpg<br>
+                            <span class="prompt">$</span> python make_bald.py 이미지.jpg
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="requirements">
+        <div class="req-card">
+            <h2>요구 사항</h2>
+            <div class="req-grid">
+                <div class="req-item">
+                    <div class="name">Python 3</div>
+                    <div class="desc">런타임 환경</div>
+                </div>
+                <div class="req-item">
+                    <div class="name">Pillow</div>
+                    <div class="desc">이미지 처리</div>
+                </div>
+                <div class="req-item">
+                    <div class="name">OpenCV</div>
+                    <div class="desc">컴퓨터 비전</div>
+                </div>
+                <div class="req-item">
+                    <div class="name">NumPy</div>
+                    <div class="desc">수치 연산</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>
+            <a href="https://github.com/dodo9944-ops/813700">GitHub 저장소</a>
+        </p>
+    </footer>
+</body>
+</html>
