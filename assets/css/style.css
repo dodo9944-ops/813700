@@ -1,5 +1,29 @@
-/* ===== Mobile Top Bar ===== */
+/* ===== Reset & Base ===== */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  background-color: #1a1d2e;
+  color: #b0b3c6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* ===== Mobile Top Bar (모바일 전용) ===== */
 .mobile-top-bar {
+  display: none;
+}
+
+.mobile-scroll-menu {
   display: none;
 }
 
@@ -61,14 +85,8 @@
   .hamburger-btn svg {
     fill: #222;
   }
-}
 
-/* ===== Mobile Scroll Menu ===== */
-.mobile-scroll-menu {
-  display: none;
-}
-
-@media (max-width: 768px) {
+  /* ===== Mobile Scroll Menu (모바일 전용) ===== */
   .mobile-scroll-menu {
     display: block;
     position: fixed;
@@ -120,26 +138,6 @@
   body {
     padding-top: 100px;
   }
-}
-
-/* ===== Reset & Base ===== */
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-body {
-  font-family: 'Noto Sans KR', sans-serif;
-  background-color: #1a1d2e;
-  color: #b0b3c6;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-a {
-  text-decoration: none;
-  color: inherit;
 }
 
 /* ===== Business Areas Section ===== */
