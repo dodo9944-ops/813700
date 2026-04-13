@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ site.title }}</title>
+  <meta name="description" content="{{ site.description }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
+</head>
+<body>
+
+  <!-- 모바일 고정 헤더 -->
+  <header class="mobile-top-bar">
+    <div class="top-bar-inner">
+      <div class="top-bar-logo">
+        <span class="logo-icon">
+          <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" width="28" height="28">
+            <rect x="4" y="4" width="24" height="24" rx="3" fill="none" stroke="#fff" stroke-width="2"/>
+            <path d="M10 10h5v12h-5zM17 10h5v8h-5z" fill="none" stroke="#fff" stroke-width="1.5"/>
+          </svg>
+        </span>
+        <div class="logo-text">
+          <strong>(주)세울엔지니어링</strong>
+          <small>SEUL ENGINEERING</small>
+        </div>
+      </div>
+      <button class="hamburger-btn" aria-label="메뉴">
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="#fff">
+          <path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- 모바일 수평 스크롤 메뉴 -->
+  <nav class="mobile-scroll-menu">
+    <div class="scroll-menu-track">
+      <a href="#company" class="menu-item">회사소개</a>
+      <a href="#history" class="menu-item">세울의 길</a>
+      <a href="#service" class="menu-item active">사업분야</a>
+      <a href="#portfolio" class="menu-item">업무실적</a>
+      <a href="#resources" class="menu-item">자료실</a>
+      <a href="#community" class="menu-item">커뮤니티</a>
+      <a href="#location" class="menu-item">내 위치</a>
+      <a href="#feasibility" class="menu-item">사업성 검토</a>
+      <a href="/pages/contact.html" class="menu-item">고객센터</a>
+      <a href="#intranet" class="menu-item">인트라넷</a>
+    </div>
+  </nav>
+
+  {{ content }}
+
+  <script>
+  // 모바일 수평 메뉴 터치 스와이프
+  (function() {
+    var track = document.querySelector('.scroll-menu-track');
+    if (!track) return;
+
+    var startX = 0;
+    var scrollStart = 0;
+    var isDragging = false;
+
+    track.addEventListener('touchstart', function(e) {
+      isDragging = true;
+      startX = e.touches[0].clientX;
+      scrollStart = track.scrollLeft;
+      track.style.scrollBehavior = 'auto';
+    }, { passive: true });
+
+    track.addEventListener('touchmove', function(e) {
+      if (!isDragging) return;
+      var diff = startX - e.touches[0].clientX;
+      track.scrollLeft = scrollStart + diff;
+    }, { passive: true });
+
+    track.addEventListener('touchend', function() {
+      isDragging = false;
+      track.style.scrollBehavior = 'smooth';
+    }, { passive: true });
+  })();
+  </script>
+
+</body>
+</html>

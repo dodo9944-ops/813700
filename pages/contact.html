@@ -1,0 +1,151 @@
+---
+layout: default
+---
+
+<section class="contact-hero">
+  <div class="contact-hero-inner">
+    <div class="contact-hero-text">
+      <nav class="breadcrumb">홈 &gt; 고객센터</nav>
+      <p class="contact-label">&mdash; CONTACT US</p>
+      <h1>정비사업 <strong>전문 상담</strong>을 접수하세요</h1>
+      <p class="contact-desc">문의유형을 선택하고 관련 자료를 첨부하시면<br>담당 전문가가 신속히 검토 후 답변드립니다</p>
+    </div>
+    <div class="contact-hero-cards">
+      <div class="info-card">
+        <div class="info-icon">
+          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6A19.79 19.79 0 012.12 4.18 2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+        </div>
+        <h4>전화 상담</h4>
+        <p>010-2230-9210</p>
+      </div>
+      <div class="info-card">
+        <div class="info-icon">
+          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        </div>
+        <h4>이메일</h4>
+        <p>dodo6666@naver.com</p>
+      </div>
+      <div class="info-card">
+        <div class="info-icon">
+          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <h4>응답 시간</h4>
+        <p>2-3영업일 이내 회신</p>
+      </div>
+      <div class="info-card">
+        <div class="info-icon">
+          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </div>
+        <h4>방문 상담</h4>
+        <p>사전 예약 권장</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="contact-content">
+  <div class="contact-content-inner">
+
+    <!-- 상담 접수 폼 (회원가입 불필요) -->
+    <div class="contact-form-area">
+      <h2>상담 접수</h2>
+      <p class="form-desc">회원가입 없이 바로 상담을 접수하실 수 있습니다.</p>
+
+      <form class="contact-form" action="#" method="post">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="name">이름 / 단체명 <span class="required">*</span></label>
+            <input type="text" id="name" name="name" placeholder="이름 또는 단체명을 입력하세요" required>
+          </div>
+          <div class="form-group">
+            <label for="phone">연락처 <span class="required">*</span></label>
+            <input type="tel" id="phone" name="phone" placeholder="010-0000-0000" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="email">이메일</label>
+            <input type="email" id="email" name="email" placeholder="example@email.com">
+          </div>
+          <div class="form-group">
+            <label for="inquiry-type">문의 유형 <span class="required">*</span></label>
+            <select id="inquiry-type" name="inquiry-type" required>
+              <option value="" disabled selected>문의 유형을 선택하세요</option>
+              <option value="redevelopment">주택재개발 정비사업</option>
+              <option value="reconstruction">주택재건축 정비사업</option>
+              <option value="small">소규모 정비사업</option>
+              <option value="urban-complex">도심복합개발</option>
+              <option value="planning">도시계획 (엔지니어링)</option>
+              <option value="pm-cm">도시정비 PM/CM</option>
+              <option value="feasibility">사업성 검토</option>
+              <option value="other">기타 문의</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group full-width">
+          <label for="project-location">사업지 위치</label>
+          <input type="text" id="project-location" name="project-location" placeholder="예: 서울시 강남구 ○○동">
+        </div>
+
+        <div class="form-group full-width">
+          <label for="message">상담 내용 <span class="required">*</span></label>
+          <textarea id="message" name="message" rows="6" placeholder="상담 내용을 자유롭게 작성해 주세요" required></textarea>
+        </div>
+
+        <div class="form-group full-width">
+          <label for="attachment">파일 첨부</label>
+          <input type="file" id="attachment" name="attachment" multiple>
+          <small class="file-hint">도면, 사업 관련 서류 등 (최대 20MB)</small>
+        </div>
+
+        <div class="form-group full-width">
+          <label class="checkbox-label">
+            <input type="checkbox" name="privacy" required>
+            <span>개인정보 수집 및 이용에 동의합니다. <span class="required">*</span></span>
+          </label>
+        </div>
+
+        <button type="submit" class="submit-btn">상담 접수하기</button>
+      </form>
+    </div>
+
+    <!-- 우측 사이드바 -->
+    <aside class="contact-sidebar">
+      <div class="sidebar-card">
+        <div class="sidebar-icon">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#c8a45a" stroke-width="1.5"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6A19.79 19.79 0 012.12 4.18 2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+        </div>
+        <h4>전화 상담</h4>
+        <p class="sidebar-sub">빠른 상담이 필요할 때</p>
+        <p class="sidebar-value">010-2230-9210</p>
+        <p class="sidebar-detail">평일 09:00 ~ 18:00<br>(토·일·공휴일 휴무)</p>
+        <span class="sidebar-badge green">즉시 상담 가능</span>
+      </div>
+
+      <div class="sidebar-card">
+        <div class="sidebar-icon">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#c8a45a" stroke-width="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        </div>
+        <h4>이메일 문의</h4>
+        <p class="sidebar-sub">자료 첨부 및 상세 문의</p>
+        <p class="sidebar-value">dodo6666@naver.com</p>
+        <p class="sidebar-detail">대용량 파일, 도면, 사업 관련 서류를 함께 보내실 때 이메일을 이용해 주세요.</p>
+        <span class="sidebar-badge blue">2-3영업일 이내 회신</span>
+      </div>
+
+      <div class="sidebar-card">
+        <div class="sidebar-icon">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#c8a45a" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </div>
+        <h4>방문 상담</h4>
+        <p class="sidebar-sub">대면 상담 예약</p>
+        <p class="sidebar-value">경기도 하남시 감일백제로 70, 204동 1104호</p>
+        <p class="sidebar-detail">세울엔지니어링 하남지사</p>
+        <span class="sidebar-badge orange">사전 예약 권장</span>
+      </div>
+    </aside>
+
+  </div>
+</section>
