@@ -65,7 +65,7 @@ function createService(apiKey, service) {
  */
 function createClient(apiKey) {
   if (!apiKey || apiKey === 'YOUR_API_KEY_HERE') {
-    throw new Error('.env 파일에 유효한 SEOUL_API_KEY 를 설정하세요.');
+    throw new Error('.env 파일에 유효한 SEOUL_OPENAPI_KEY 를 설정하세요.');
   }
 
   return {
