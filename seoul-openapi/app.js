@@ -2,17 +2,16 @@
  * 서울시 열린데이터 API 실행 파일
  *
  * 사용법:
- *   1. .env 파일에 SEOUL_OPENAPI_KEY 설정
+ *   1. .env 파일에 SEOUL_API_KEY 설정
  *   2. npm install
  *   3. npm start
  */
 
-import dotenv from 'dotenv';
-import { createClient } from './api/seoulApi.js';
+require('dotenv').config();
 
-dotenv.config();
+const { createClient } = require('./api/seoulApi');
 
-const client = createClient(process.env.SEOUL_OPENAPI_KEY);
+const client = createClient(process.env.SEOUL_API_KEY);
 
 async function main() {
   try {

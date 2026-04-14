@@ -5,8 +5,6 @@
  *   http://openapi.seoul.go.kr:8088/{KEY}/{TYPE}/{SERVICE}/{START}/{END}/
  */
 
-import fetch from 'node-fetch';
-
 const BASE_URL = 'http://openapi.seoul.go.kr:8088';
 
 /**
@@ -39,9 +37,9 @@ function createService(apiKey, service) {
 /**
  * 서울 API 클라이언트 초기화
  */
-export function createClient(apiKey) {
+function createClient(apiKey) {
   if (!apiKey) {
-    throw new Error('.env 파일에 유효한 SEOUL_OPENAPI_KEY 를 설정하세요.');
+    throw new Error('.env 파일에 유효한 SEOUL_API_KEY 를 설정하세요.');
   }
 
   return {
@@ -49,7 +47,7 @@ export function createClient(apiKey) {
     createService: (service) => createService(apiKey, service),
 
     /** 서울시 공공와이파이 정보 */
-    wifi: createService(apiKey, 'tbPublicWifiInfo'),
+    wifi: createService(apiKey, 'TbPublicWifiInfo'),
 
     /** 공동주택 공시가격 */
     landPrice: createService(apiKey, 'LandPriceOpenService'),
@@ -61,3 +59,5 @@ export function createClient(apiKey) {
     realEstate: createService(apiKey, 'tbLnOpendataRtmsV'),
   };
 }
+
+module.exports = { createClient, callApi };
