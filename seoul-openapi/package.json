@@ -1,0 +1,13 @@
+{
+  "name": "seoul-openapi",
+  "version": "1.0.0",
+  "description": "서울시 열린데이터 API 클라이언트 모듈",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "node-fetch": "^2.7.0"
+  }
+}
