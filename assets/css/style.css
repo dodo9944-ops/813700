@@ -315,6 +315,133 @@ a {
   }
 }
 
+/* ===== Clickable Tag ===== */
+.tag-clickable {
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.tag-clickable:hover {
+  background: rgba(200, 164, 90, 0.15);
+  border-color: rgba(200, 164, 90, 0.4);
+  color: #c8a45a;
+}
+
+/* ===== Modal ===== */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 2000;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal-overlay.active {
+  display: flex;
+}
+
+.modal-content {
+  background: #1a1d2e;
+  border-radius: 20px;
+  padding: 40px 32px 32px;
+  max-width: 480px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  text-align: center;
+}
+
+.modal-icon {
+  margin-bottom: 20px;
+}
+
+.modal-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 6px;
+}
+
+.modal-subtitle {
+  font-size: 0.85rem;
+  color: #7b8cde;
+  letter-spacing: 0.12em;
+  margin-bottom: 28px;
+}
+
+.modal-desc {
+  font-size: 0.95rem;
+  line-height: 1.75;
+  color: #b0b3c6;
+  text-align: left;
+  margin-bottom: 28px;
+}
+
+.modal-competencies {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 24px;
+  text-align: left;
+  margin-bottom: 28px;
+}
+
+.competencies-label {
+  font-size: 0.75rem;
+  color: #7b8cde;
+  letter-spacing: 0.15em;
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+
+.competencies-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.competencies-list li {
+  font-size: 0.9rem;
+  color: #c8cce0;
+  line-height: 1.5;
+  padding-left: 16px;
+  position: relative;
+}
+
+.competencies-list li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: #7b8cde;
+}
+
+.modal-close-btn {
+  display: block;
+  width: 100%;
+  padding: 16px;
+  background: #2a2d45;
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: 'Noto Sans KR', sans-serif;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.modal-close-btn:hover {
+  background: #353a56;
+}
+
 /* ===== Contact Page - Hero ===== */
 .contact-hero {
   background: linear-gradient(135deg, #1a1d2e 0%, #2a2d45 50%, #1a1d2e 100%);

@@ -160,10 +160,41 @@ layout: default
           <span class="tag">일정 관리</span>
           <span class="tag">원가 관리</span>
           <span class="tag">리스크 관리</span>
-          <span class="tag">이해관계 조율</span>
+          <span class="tag tag-clickable" onclick="event.preventDefault(); openModal()">이해관계 조율</span>
         </div>
       </div>
     </a>
 
   </div>
 </section>
+
+<!-- 이해관계 조율 모달 -->
+<div class="modal-overlay" id="stakeholderModal">
+  <div class="modal-content">
+    <div class="modal-icon">
+      <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" width="48" height="48">
+        <path d="M16 28l-4-4c-1.1-1.1-2.9-1.1-4 0s-1.1 2.9 0 4l6 6c1.1 1.1 2.9 1.1 4 0l2-2" fill="none" stroke="#c8a45a" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M32 28l4-4c1.1-1.1 2.9-1.1 4 0s1.1 2.9 0 4l-6 6c-1.1 1.1-2.9 1.1-4 0l-2-2" fill="none" stroke="#c8a45a" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M20 32l4 4 4-4" fill="none" stroke="#c8a45a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="16" cy="18" r="4" fill="none" stroke="#c8a45a" stroke-width="2"/>
+        <circle cx="32" cy="18" r="4" fill="none" stroke="#c8a45a" stroke-width="2"/>
+      </svg>
+    </div>
+    <h2 class="modal-title">이해관계 조율</h2>
+    <p class="modal-subtitle">STAKEHOLDER COORDINATION</p>
+
+    <p class="modal-desc">정비사업에는 조합원, 시공사, 설계사, 감정평가사, 행정기관 등 수십 개의 이해관계자가 참여합니다. 세울엔지니어링은 각 주체의 이해관계를 데이터 기반으로 객관 분석하고, 최적의 합의점을 도출합니다.</p>
+
+    <div class="modal-competencies">
+      <h4 class="competencies-label">CORE COMPETENCIES</h4>
+      <ul class="competencies-list">
+        <li>조합원·시공사·행정기관 간 3자 균형 자문 모델 운영</li>
+        <li>총회 안건 설계, 의결 구조 최적화, 위임장 관리 시스템</li>
+        <li>갈등 사안에 대한 중립적 조정안 제시 및 합의 도출</li>
+        <li>소수 반대 의견에 대한 법적·제도적 대응 방안 수립</li>
+      </ul>
+    </div>
+
+    <button class="modal-close-btn" onclick="closeModal()">닫기</button>
+  </div>
+</div>
