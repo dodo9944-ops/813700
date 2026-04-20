@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>텔레봇 브릿지 · 온라인</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <nav class="topnav">
+    <a class="brand" href="/">◈ 메타공간</a>
+    <div class="links">
+      <a href="/">메타스페이스</a>
+      <a href="/coop.html">조합 홈페이지</a>
+      <a class="active" href="/bridge.html">텔레봇 브릿지</a>
+    </div>
+  </nav>
+
+  <header class="hero small">
+    <div class="hero-inner">
+      <h1>텔레봇 브릿지</h1>
+      <p>텔레그램 ↔ 메타공간 메시지 릴레이 · <span id="bridgeBadge" class="badge on">ONLINE</span></p>
+    </div>
+  </header>
+
+  <section class="wrap">
+    <div class="bridge-grid">
+      <div class="panel">
+        <h3>상태</h3>
+        <dl class="kv">
+          <dt>가동 상태</dt><dd id="bState">–</dd>
+          <dt>시작 시간</dt><dd id="bStarted">–</dd>
+          <dt>메시지 수</dt><dd id="bCount">–</dd>
+          <dt>구독자</dt><dd id="bSubs">–</dd>
+        </dl>
+        <button class="btn ghost" id="toggleBtn">온/오프 전환</button>
+      </div>
+
+      <div class="panel">
+        <h3>메시지 전송</h3>
+        <form id="sendForm">
+          <label>봇 토큰 <span class="muted">(선택)</span>
+            <input name="botToken" placeholder="123456:ABC-..." autocomplete="off" />
+          </label>
+          <label>Chat ID
+            <input name="chatId" placeholder="@username 또는 숫자 ID" />
+          </label>
+          <label>내용
+            <textarea name="text" rows="3" required placeholder="메시지를 입력하세요"></textarea>
+          </label>
+          <button class="btn primary" type="submit">전송</button>
+          <p class="muted">토큰/Chat ID가 비어있으면 로컬 에코 모드로 동작합니다.</p>
+        </form>
+      </div>
+
+      <div class="panel wide">
+        <h3>실시간 로그</h3>
+        <ul class="log" id="logList"></ul>
+      </div>
+    </div>
+
+    <h3>웹훅 엔드포인트</h3>
+    <pre class="code">POST /api/bridge/webhook
+# Telegram BotFather에서 setWebhook으로 연결하세요
+curl -F "url=https://your-host/api/bridge/webhook" \
+     https://api.telegram.org/bot&lt;TOKEN&gt;/setWebhook</pre>
+  </section>
+
+  <footer class="foot"><span>© 2026 메타공간 협동조합</span></footer>
+
+  <script src="/bridge.js"></script>
+</body>
+</html>

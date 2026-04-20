@@ -1,0 +1,17 @@
+{
+  "name": "metaspace-platform",
+  "version": "0.1.0",
+  "description": "메타공간 플랫폼: 메타스페이스 + 조합 홈페이지 + 텔레봇 브릿지",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "body-parser": "^1.20.2"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
