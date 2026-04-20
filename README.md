@@ -38,8 +38,13 @@ npm start
 브릿지·뉴스 API는 동작하지 않고 `config.js`의 `apiBase`를 외부 Node 서버 주소로
 설정하면 UI가 해당 서버에 연결됩니다.
 
-1. GitHub 저장소 → Settings → Pages → Source: **GitHub Actions**
-2. 이 브랜치로 push 시 자동 배포
+> **주의**: 이 저장소의 `github-pages` 환경은 기본 브랜치에만 배포를 허용합니다.
+> 기능 브랜치에서 자동 실행하면 "environment protection rules" 오류로 실패하므로,
+> 워크플로는 `workflow_dispatch`(수동 트리거) 전용으로 설정되어 있습니다.
+
+1. 이 브랜치를 기본 브랜치로 병합
+2. Settings → Pages → Source: **GitHub Actions**
+3. Actions 탭 → "Deploy static UI to GitHub Pages" → **Run workflow**
 
 ### B. 풀스택 호스팅 (권장)
 
