@@ -1,11 +1,26 @@
 (function () {
-  fetch('/api/coop/info').then(r => r.json()).then(info => {
+  const cfg = window.METASPACE_CONFIG || { apiBase: '', environment: 'server' };
+  const STATIC_FALLBACK = {
+    name: '메타공간 협동조합',
+    slogan: '가상과 현실을 잇는 공동체',
+    founded: '2024-03-01',
+    members: 128,
+    mission: '누구나 소유하고 함께 운영하는 메타버스 공공재',
+    address: '서울특별시 메타구 공간동 8137-00',
+  };
+  function render(info) {
     document.getElementById('coopSlogan').textContent = info.slogan;
     document.getElementById('statMembers').textContent = info.members + '명';
     document.getElementById('statFounded').textContent = info.founded;
     document.getElementById('statAddr').textContent = info.address;
     document.getElementById('coopMission').textContent = info.mission;
-  });
+  }
+  const endpoint = (cfg.apiBase || '') + '/api/coop/info';
+  if (cfg.environment === 'pages' && !cfg.apiBase) {
+    render(STATIC_FALLBACK);
+  } else {
+    fetch(endpoint).then(r => r.json()).then(render).catch(() => render(STATIC_FALLBACK));
+  }
 
   const form = document.getElementById('joinForm');
   const msg = document.getElementById('joinMsg');

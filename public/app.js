@@ -1,12 +1,19 @@
 (function () {
+  const cfg = window.METASPACE_CONFIG || { apiBase: '', environment: 'server' };
+  const api = (path) => (cfg.apiBase || '') + path;
   const pill = document.getElementById('statusPill');
-  fetch('/api/bridge/status').then(r => r.json()).then(s => {
-    pill.textContent = s.online ? '브릿지 온라인' : '브릿지 오프라인';
-    pill.classList.add(s.online ? 'on' : 'off');
-  }).catch(() => {
-    pill.textContent = '오프라인';
+  if (cfg.environment === 'pages' && !cfg.apiBase) {
+    pill.textContent = '정적 모드';
     pill.classList.add('off');
-  });
+  } else {
+    fetch(api('/api/bridge/status')).then(r => r.json()).then(s => {
+      pill.textContent = s.online ? '브릿지 온라인' : '브릿지 오프라인';
+      pill.classList.add(s.online ? 'on' : 'off');
+    }).catch(() => {
+      pill.textContent = '오프라인';
+      pill.classList.add('off');
+    });
+  }
 
   const canvas = document.getElementById('scene');
   if (!canvas) return;

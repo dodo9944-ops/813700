@@ -31,6 +31,28 @@ npm start
 
 - `GET /api/coop/info` — 조합 기본 정보
 
+## 라이브 배포
+
+### A. GitHub Pages (정적 UI만)
+`.github/workflows/deploy-pages.yml`이 `public/` 디렉터리를 Pages로 배포합니다.
+브릿지·뉴스 API는 동작하지 않고 `config.js`의 `apiBase`를 외부 Node 서버 주소로
+설정하면 UI가 해당 서버에 연결됩니다.
+
+1. GitHub 저장소 → Settings → Pages → Source: **GitHub Actions**
+2. 이 브랜치로 push 시 자동 배포
+
+### B. 풀스택 호스팅 (권장)
+
+| 플랫폼 | 파일 | 명령 |
+|--------|------|------|
+| Render | `render.yaml` | 대시보드에서 Blueprint 연결 |
+| Fly.io | `fly.toml` | `flyctl launch --copy-config && flyctl deploy` |
+| Heroku | `Procfile` | `heroku create && git push heroku` |
+| Docker | `Dockerfile` | `docker build -t metaspace . && docker run -p 3000:3000 metaspace` |
+
+배포 후 `config.js`의 `apiBase`를 배포 도메인으로 덮어써 Pages UI와 연결할 수
+있습니다(CORS 허용 필요 시 서버 코드에 미들웨어 추가).
+
 ## 브랜치
 
 `claude/build-metaspace-platform-APHlN`

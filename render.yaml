@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: metaspace-platform
+    runtime: node
+    plan: free
+    buildCommand: npm ci
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+    healthCheckPath: /api/bridge/status
