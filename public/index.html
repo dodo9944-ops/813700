@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>메타공간 · Metaspace Platform</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <nav class="topnav">
+    <a class="brand" href="index.html">◈ 메타공간</a>
+    <div class="links">
+      <a href="index.html">메타스페이스</a>
+      <a href="coop.html">조합 홈페이지</a>
+      <a href="bridge.html">텔레봇 브릿지</a>
+    </div>
+    <span class="status" id="statusPill">연결 중…</span>
+  </nav>
+
+  <header class="hero">
+    <div class="hero-inner">
+      <h1>가상 공간에서<br/>모두가 만나다</h1>
+      <p>메타공간은 협동조합이 운영하는 오픈 메타버스와
+        텔레그램 브릿지, 커뮤니티 홈페이지를 하나로 묶은 플랫폼입니다.</p>
+      <div class="cta">
+        <a class="btn primary" href="#enter">공간 입장</a>
+        <a class="btn ghost" href="bridge.html">브릿지 상태</a>
+      </div>
+    </div>
+    <div class="orb"></div>
+  </header>
+
+  <section id="enter" class="space">
+    <h2>메타스페이스 로비</h2>
+    <div class="scene">
+      <canvas id="scene" width="960" height="480"></canvas>
+      <div class="scene-hud">
+        <div>위치 <b id="pos">(0, 0)</b></div>
+        <div>접속자 <b id="peers">1</b></div>
+        <div>이동 <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="grid">
+    <article class="card">
+      <h3>오픈 월드</h3>
+      <p>브라우저에서 바로 접속하는 2D 메타버스. 계정 없이 관찰자로 입장 가능.</p>
+    </article>
+    <article class="card">
+      <h3>조합 운영</h3>
+      <p>협동조합 구성원이 함께 소유·운영하는 투명한 공공 인프라.</p>
+    </article>
+    <article class="card">
+      <h3>텔레봇 브릿지</h3>
+      <p>텔레그램과 메타공간 사이를 잇는 실시간 메시지 브릿지(온라인).</p>
+    </article>
+  </section>
+
+  <footer class="foot">
+    <span>© 2026 메타공간 협동조합</span>
+    <span>branch: claude/build-metaspace-platform</span>
+  </footer>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

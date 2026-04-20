@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>메타공간 협동조합</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <nav class="topnav">
+    <a class="brand" href="index.html">◈ 메타공간</a>
+    <div class="links">
+      <a href="index.html">메타스페이스</a>
+      <a class="active" href="coop.html">조합 홈페이지</a>
+      <a href="bridge.html">텔레봇 브릿지</a>
+    </div>
+  </nav>
+
+  <header class="hero small">
+    <div class="hero-inner">
+      <h1>메타공간 협동조합</h1>
+      <p id="coopSlogan">가상과 현실을 잇는 공동체</p>
+    </div>
+  </header>
+
+  <section class="coop-stats" id="coopStats">
+    <div class="stat"><b id="statMembers">–</b><span>조합원</span></div>
+    <div class="stat"><b id="statFounded">–</b><span>설립일</span></div>
+    <div class="stat"><b id="statAddr">–</b><span>주소</span></div>
+  </section>
+
+  <section class="wrap">
+    <h2>우리의 미션</h2>
+    <p id="coopMission" class="lead">–</p>
+
+    <h2>사업 영역</h2>
+    <div class="grid">
+      <article class="card">
+        <h3>1. 공공 메타버스 운영</h3>
+        <p>누구나 접속 가능한 오픈 공간 제공과 모더레이션.</p>
+      </article>
+      <article class="card">
+        <h3>2. 커뮤니티 브릿지</h3>
+        <p>텔레그램·디스코드 등 외부 채널 연동 봇 운영.</p>
+      </article>
+      <article class="card">
+        <h3>3. 교육·지원</h3>
+        <p>조합원 대상 메타버스 리터러시 교육과 창작 지원.</p>
+      </article>
+    </div>
+
+    <h2>가입 안내</h2>
+    <form class="join" id="joinForm">
+      <label>이름<input required name="name" placeholder="홍길동" /></label>
+      <label>연락 수단<input required name="contact" placeholder="이메일 또는 텔레그램 ID" /></label>
+      <label>가입 동기<textarea name="motive" rows="3" placeholder="왜 메타공간 조합에 합류하고 싶나요?"></textarea></label>
+      <button class="btn primary" type="submit">가입 신청</button>
+      <p class="muted" id="joinMsg"></p>
+    </form>
+
+    <h2>정관 요약</h2>
+    <ul class="rules">
+      <li>1조합원 1표 원칙으로 총회에서 의사결정합니다.</li>
+      <li>운영 수익은 공공 인프라에 재투자합니다.</li>
+      <li>모든 회계는 분기별로 조합원에게 공개됩니다.</li>
+    </ul>
+  </section>
+
+  <footer class="foot"><span>© 2026 메타공간 협동조합</span></footer>
+
+  <script src="config.js"></script>
+  <script src="coop.js"></script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+name: Deploy static UI to GitHub Pages
+
+# 이 저장소의 github-pages 환경은 기본 브랜치에만 배포를 허용합니다.
+# 기능 브랜치에서 자동 실행하면 "environment protection rules" 오류로 실패하므로
+# 수동 트리거(workflow_dispatch)로만 동작하며, 실제 배포는 기본 브랜치에 병합 후
+# Actions 탭에서 "Run workflow"로 실행하세요.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - name: Upload public/ as artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./public
+      - id: deployment
+        uses: actions/deploy-pages@v4
