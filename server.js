@@ -303,12 +303,12 @@ function nightSessionStatus(now = new Date()) {
   const kst = new Date(now.getTime() + 9 * 3600 * 1000);
   const day = kst.getUTCDay(); // 0=일 .. 6=토
   const h = kst.getUTCHours();
-  // 월~금 저녁 18시 개장(day 1~5), 다음날 05시 마감(이튿날 day 2~6)
-  const open = (h >= 18 && day >= 1 && day <= 5) || (h < 5 && day >= 2 && day <= 6);
+  // KRX 파생 야간시장: 월~금 18시 개장(day 1~5), 다음날 06시 마감(이튿날 day 2~6)
+  const open = (h >= 18 && day >= 1 && day <= 5) || (h < 6 && day >= 2 && day <= 6);
   return {
     open,
     kstTime: kst.toISOString().slice(11, 19),
-    sessionLabel: '평일 18:00 ~ 익일 05:00 (KST)',
+    sessionLabel: '평일 18:00 ~ 익일 06:00 (KST · KRX 야간시장)',
   };
 }
 

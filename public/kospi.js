@@ -62,8 +62,8 @@
   function nightSession() {
     const kst = new Date(Date.now() + 9 * 3600 * 1000);
     const day = kst.getUTCDay(), h = kst.getUTCHours();
-    const open = (h >= 18 && day >= 1 && day <= 5) || (h < 5 && day >= 2 && day <= 6);
-    return { open, kstTime: kst.toISOString().slice(11, 19), sessionLabel: '평일 18:00 ~ 익일 05:00 (KST)' };
+    const open = (h >= 18 && day >= 1 && day <= 5) || (h < 6 && day >= 2 && day <= 6);
+    return { open, kstTime: kst.toISOString().slice(11, 19), sessionLabel: '평일 18:00 ~ 익일 06:00 (KST · KRX 야간시장)' };
   }
 
   // 네이버 시세 JSON 방어적 파싱
