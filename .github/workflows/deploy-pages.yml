@@ -1,10 +1,10 @@
-name: Deploy static UI to GitHub Pages
+name: Deploy app to GitHub Pages
 
-# 이 저장소의 github-pages 환경은 기본 브랜치에만 배포를 허용합니다.
-# 기능 브랜치에서 자동 실행하면 "environment protection rules" 오류로 실패하므로
-# 수동 트리거(workflow_dispatch)로만 동작하며, 실제 배포는 기본 브랜치에 병합 후
-# Actions 탭에서 "Run workflow"로 실행하세요.
+# public/ 디렉터리(메타공간 + 코스피 야간선물 뷰어)를 GitHub Pages로 배포한다.
+# 기본 브랜치 push 시 자동 실행되며, Actions 탭에서 수동 실행도 가능하다.
 on:
+  push:
+    branches: ["claude/init-project-setup-sOTzo"]
   workflow_dispatch:
 
 permissions:
@@ -24,7 +24,10 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/configure-pages@v5
+      - name: Setup Pages (자동 활성화 포함)
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - name: Upload public/ as artifact
         uses: actions/upload-pages-artifact@v3
         with:
