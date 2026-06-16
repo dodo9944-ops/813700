@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>코스피200 야간선물 · 실시간</title>
+  <meta name="description" content="코스피200 야간선물(EUREX 연계) 실시간 지수 뷰어" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <nav class="topnav">
+    <a class="brand" href="index.html">◈ 메타공간</a>
+    <div class="links">
+      <a href="index.html">메타스페이스</a>
+      <a href="coop.html">조합 홈페이지</a>
+      <a href="bridge.html">텔레봇 브릿지</a>
+      <a href="kospi.html" class="active">야간선물</a>
+    </div>
+    <span class="status" id="sessionPill">세션 확인 중…</span>
+  </nav>
+
+  <header class="hero small">
+    <div class="hero-inner">
+      <h1>코스피200 야간선물</h1>
+      <p>EUREX 연계 야간선물 실시간 지수. 다음 거래일 국내 증시 시초가 방향을
+        가늠하는 선행 지표입니다. 거래시간 평일 18:00 ~ 익일 05:00 (KST).</p>
+    </div>
+  </header>
+
+  <main class="kospi-wrap">
+    <section class="quote-card" id="quoteCard">
+      <div class="quote-head">
+        <span class="quote-name" id="quoteName">코스피200 야간선물</span>
+        <span class="badge" id="srcBadge" hidden></span>
+      </div>
+
+      <div class="quote-value" id="quoteValue">—</div>
+      <div class="quote-change" id="quoteChange">불러오는 중…</div>
+
+      <div class="chart-head">
+        <span class="chart-title">가격 추이</span>
+        <span class="chart-note" id="chartNote"></span>
+      </div>
+      <svg class="chart" id="chart" viewBox="0 0 720 300"
+           role="img" aria-label="코스피200 야간선물 가격 추이 차트"></svg>
+
+      <div class="quote-meta">
+        <div><span>전일종가</span><b id="mPrev">—</b></div>
+        <div><span>체결시각</span><b id="mTime">—</b></div>
+        <div><span>데이터 갱신</span><b id="mFetched">—</b></div>
+        <div><span>출처</span><b id="mSource">—</b></div>
+      </div>
+
+      <div class="quote-foot">
+        <label class="auto"><input type="checkbox" id="autoToggle" checked /> 자동 새로고침(10초)</label>
+        <button class="btn" id="refreshBtn">지금 새로고침</button>
+      </div>
+      <p class="hint" id="hint"></p>
+    </section>
+
+    <aside class="info-card">
+      <h3>야간선물이란?</h3>
+      <p>정규장 마감 후 EUREX(유럽거래소)에 상장된 코스피200 미니선물이 연계
+        거래됩니다. 미국·유럽 증시 흐름이 반영돼 다음 날 국내 증시의 방향성을
+        예측하는 데 활용됩니다.</p>
+      <ul>
+        <li>거래시간: 평일 18:00 ~ 익일 05:00 (KST)</li>
+        <li>기초자산: 코스피200 지수</li>
+        <li>특징: 글로벌 야간 이슈 선반영</li>
+      </ul>
+      <p class="disclaimer">※ 본 화면은 정보 제공용이며 투자 판단의 책임은
+        이용자에게 있습니다. 시세는 지연·오차가 있을 수 있습니다.</p>
+    </aside>
+  </main>
+
+  <footer class="foot">
+    <span>© 2026 메타공간 협동조합</span>
+    <span>코스피200 야간선물 뷰어</span>
+  </footer>
+
+  <script src="config.js"></script>
+  <script src="kospi.js"></script>
+</body>
+</html>

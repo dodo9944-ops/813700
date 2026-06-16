@@ -7,6 +7,7 @@
 - `/` — 메타스페이스 로비 (2D 캔버스 월드, WASD 이동)
 - `/coop.html` — 메타공간 협동조합 소개 및 가입 신청
 - `/bridge.html` — 텔레그램 ↔ 메타공간 브릿지 (온라인)
+- `/kospi.html` — 코스피200 야간선물(EUREX 연계) 실시간 지수 뷰어
 
 ## 실행
 
@@ -26,6 +27,39 @@ npm start
 
 `botToken`과 `chatId`가 함께 전달되면 실제 텔레그램 API(`api.telegram.org`)로
 릴레이하고, 비어 있으면 로컬 에코 모드로 동작합니다.
+
+## 코스피200 야간선물 뷰어
+
+![코스피200 야간선물 페이지 미리보기](docs/preview-kospi.png)
+
+> 위 미리보기는 데모 모드(`?demo=1`)로 캡처한 화면입니다.
+
+`/kospi.html` 은 코스피200 야간선물(EUREX 연계, 평일 18:00~익일 05:00 KST)
+실시간 지수를 보여줍니다. 현재가·등락·등락률·전일종가·세션 상태와 함께
+가격 추이 차트(축·격자·전일종가 기준선)를 그리고 10초마다 자동 갱신합니다.
+차트는 시계열을 먼저 불러온 뒤 실시간 시세를 이어 붙입니다.
+(한국 관행대로 상승=빨강, 하락=파랑)
+
+- `GET /api/kospi-night` — 정규화된 시세 JSON
+  (`{ status, value, change, changeRate, prevClose, time, source, session }`)
+- `GET /api/kospi-night/history` — 차트용 시계열 JSON (`{ status, source, series:[{t,v}] }`)
+- `?demo=1` — 데이터 소스 없이 동작 확인용 데모 시세/시계열
+
+### 데이터 소스 설정
+
+서버가 외부 시세 소스를 대신 호출해 CORS 없이 정규화합니다. 응답 필드명이
+조금 달라도 견디도록 방어적으로 파싱하며, 어떤 소스도 응답하지 않으면 가짜
+시세를 만들지 않고 `status:"unavailable"` 을 반환합니다.
+
+| 환경변수 | 설명 | 기본값 |
+|----------|------|--------|
+| `KOSPI_NIGHT_API_URL` | 현재 시세를 가져올 JSON 엔드포인트(설정 시 이 URL만 사용) | 네이버 금융 모바일 API |
+| `KOSPI_NIGHT_CHART_URL` | 차트 시계열을 가져올 JSON 엔드포인트 | 네이버 금융 차트 API |
+| `KOSPI_NIGHT_DEMO` | `1` 이면 항상 데모 시세/시계열 반환 | 미설정 |
+
+> 라이브 시세를 받으려면 배포 환경에서 시세 소스 호스트로의 아웃바운드 접근이
+> 허용돼야 합니다(예: `api.stock.naver.com`). 차단된 환경에서는 `?demo=1`
+> 로 UI를 확인하거나 접근 가능한 소스를 `KOSPI_NIGHT_API_URL` 로 지정하세요.
 
 ## 협동조합 API
 
