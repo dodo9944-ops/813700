@@ -448,6 +448,11 @@ app.get('/api/kospi-night', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`메타공간 플랫폼 실행 중: http://localhost:${PORT}`);
-});
+// 직접 실행하면 서버를 띄우고, Vercel 등 서버리스 환경에서는 app 만 export 한다.
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`메타공간 플랫폼 실행 중: http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;
