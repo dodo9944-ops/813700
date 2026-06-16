@@ -190,3 +190,56 @@ body {
   padding: 20px 28px; color: var(--muted); font-size: 12px;
   border-top: 1px solid var(--border); margin-top: 40px;
 }
+
+/* ── 코스피200 야간선물 뷰어 ───────────────────────────────── */
+.kospi-wrap {
+  max-width: 960px; margin: 0 auto; padding: 8px 28px 20px;
+  display: grid; grid-template-columns: 1.6fr 1fr; gap: 20px;
+}
+@media (max-width: 760px) { .kospi-wrap { grid-template-columns: 1fr; } }
+
+.quote-card, .info-card {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 16px; padding: 22px;
+}
+.quote-head { display: flex; align-items: center; gap: 10px; }
+.quote-name { color: var(--muted); font-size: 14px; }
+.badge {
+  font-size: 11px; padding: 2px 8px; border-radius: 999px;
+  border: 1px solid var(--warn); color: var(--warn);
+}
+.quote-value {
+  font-size: clamp(40px, 9vw, 72px); font-weight: 800;
+  line-height: 1.05; margin: 6px 0 2px; letter-spacing: -1px;
+  font-variant-numeric: tabular-nums;
+}
+.quote-change { font-size: 18px; font-weight: 600; color: var(--muted); }
+.quote-card.up .quote-value, .quote-card.up .quote-change { color: var(--err); }   /* 한국식: 상승=빨강 */
+.quote-card.down .quote-value, .quote-card.down .quote-change { color: var(--accent-2); } /* 하락=파랑 */
+.quote-card.flat .quote-change { color: var(--muted); }
+.quote-card.up #sparkLine { stroke: var(--err); }
+.quote-card.down #sparkLine { stroke: var(--accent-2); }
+.quote-card.flat #sparkLine { stroke: var(--muted); }
+
+.spark { width: 100%; height: 120px; margin: 16px 0 8px; display: block; }
+#sparkLine { stroke: var(--accent); }
+
+.quote-meta {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px 18px;
+  margin-top: 8px; padding-top: 14px; border-top: 1px solid var(--border);
+}
+.quote-meta > div { display: flex; justify-content: space-between; font-size: 13px; }
+.quote-meta span { color: var(--muted); }
+.quote-meta b { font-variant-numeric: tabular-nums; }
+
+.quote-foot {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; margin-top: 16px; flex-wrap: wrap;
+}
+.quote-foot .auto { color: var(--muted); font-size: 13px; display: flex; align-items: center; gap: 6px; }
+.hint { color: var(--warn); font-size: 12px; margin: 10px 0 0; min-height: 14px; }
+
+.info-card h3 { margin: 0 0 10px; }
+.info-card p { color: var(--muted); font-size: 14px; line-height: 1.6; }
+.info-card ul { color: var(--muted); font-size: 13px; padding-left: 18px; line-height: 1.7; }
+.info-card .disclaimer { font-size: 11px; color: var(--muted); margin-top: 14px; opacity: 0.8; }
