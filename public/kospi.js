@@ -14,11 +14,13 @@
 
   // 정적 호스팅에서 네이버를 직접 부를 때 쓰는 소스 + CORS 프록시
   const NAVER_QUOTE_URLS = [
-    'https://api.stock.naver.com/futures/KR4106V30007/basic',
-    'https://api.stock.naver.com/index/KOSPI200/basic',
+    'https://api.stock.naver.com/futures/KOSPI200F/basic',
+    'https://m.stock.naver.com/api/index/KPI200/basic',
+    'https://api.stock.naver.com/index/KPI200/basic',
+    'https://m.stock.naver.com/api/index/KOSPI200/basic',
   ];
   const NAVER_CHART_URLS = [
-    'https://api.stock.naver.com/chart/futures/KR4106V30007?periodType=dayCandle&count=240',
+    'https://api.stock.naver.com/chart/domestic/index/KPI200?periodType=dayCandle&count=240',
   ];
   const CORS_PROXIES = [
     (u) => 'https://corsproxy.io/?url=' + encodeURIComponent(u),

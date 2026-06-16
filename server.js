@@ -189,8 +189,11 @@ app.get('/api/news/:id', (req, res) => {
 const KOSPI_NIGHT_SOURCES = (process.env.KOSPI_NIGHT_API_URL
   ? [process.env.KOSPI_NIGHT_API_URL]
   : [
-      'https://api.stock.naver.com/futures/KR4106V30007/basic',
-      'https://api.stock.naver.com/index/KOSPI200/basic',
+      // KRX 야간시장 코스피200 선물(있으면) → 없으면 코스피200 지수로 폴백
+      'https://api.stock.naver.com/futures/KOSPI200F/basic',
+      'https://m.stock.naver.com/api/index/KPI200/basic',
+      'https://api.stock.naver.com/index/KPI200/basic',
+      'https://m.stock.naver.com/api/index/KOSPI200/basic',
     ]);
 
 const kospiCache = { at: 0, data: null };
@@ -317,7 +320,8 @@ function nightSessionStatus(now = new Date()) {
 const KOSPI_CHART_SOURCES = process.env.KOSPI_NIGHT_CHART_URL
   ? [process.env.KOSPI_NIGHT_CHART_URL]
   : [
-      'https://api.stock.naver.com/chart/futures/KR4106V30007?periodType=dayCandle&count=240',
+      'https://api.stock.naver.com/chart/domestic/index/KPI200?periodType=dayCandle&count=240',
+      'https://api.stock.naver.com/chart/futures/KOSPI200F?periodType=dayCandle&count=240',
     ];
 
 const chartCache = { at: 0, data: null };
