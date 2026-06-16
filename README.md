@@ -32,12 +32,14 @@ npm start
 
 `/kospi.html` 은 코스피200 야간선물(EUREX 연계, 평일 18:00~익일 05:00 KST)
 실시간 지수를 보여줍니다. 현재가·등락·등락률·전일종가·세션 상태와 함께
-관전 중 모은 값으로 스파크라인을 그리고 10초마다 자동 갱신합니다.
+가격 추이 차트(축·격자·전일종가 기준선)를 그리고 10초마다 자동 갱신합니다.
+차트는 시계열을 먼저 불러온 뒤 실시간 시세를 이어 붙입니다.
 (한국 관행대로 상승=빨강, 하락=파랑)
 
 - `GET /api/kospi-night` — 정규화된 시세 JSON
   (`{ status, value, change, changeRate, prevClose, time, source, session }`)
-- `GET /api/kospi-night?demo=1` — 데이터 소스 없이 동작 확인용 데모 시세
+- `GET /api/kospi-night/history` — 차트용 시계열 JSON (`{ status, source, series:[{t,v}] }`)
+- `?demo=1` — 데이터 소스 없이 동작 확인용 데모 시세/시계열
 
 ### 데이터 소스 설정
 
@@ -47,8 +49,9 @@ npm start
 
 | 환경변수 | 설명 | 기본값 |
 |----------|------|--------|
-| `KOSPI_NIGHT_API_URL` | 시세를 가져올 JSON 엔드포인트(설정 시 이 URL만 사용) | 네이버 금융 모바일 API |
-| `KOSPI_NIGHT_DEMO` | `1` 이면 항상 데모 시세 반환 | 미설정 |
+| `KOSPI_NIGHT_API_URL` | 현재 시세를 가져올 JSON 엔드포인트(설정 시 이 URL만 사용) | 네이버 금융 모바일 API |
+| `KOSPI_NIGHT_CHART_URL` | 차트 시계열을 가져올 JSON 엔드포인트 | 네이버 금융 차트 API |
+| `KOSPI_NIGHT_DEMO` | `1` 이면 항상 데모 시세/시계열 반환 | 미설정 |
 
 > 라이브 시세를 받으려면 배포 환경에서 시세 소스 호스트로의 아웃바운드 접근이
 > 허용돼야 합니다(예: `api.stock.naver.com`). 차단된 환경에서는 `?demo=1`

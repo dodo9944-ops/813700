@@ -312,6 +312,117 @@ function nightSessionStatus(now = new Date()) {
   };
 }
 
+// ── 야간선물 시계열(차트용) ────────────────────────────────────────────
+// 차트를 그릴 가격 추이. KOSPI_NIGHT_CHART_URL 로 소스를 바꿀 수 있다.
+const KOSPI_CHART_SOURCES = process.env.KOSPI_NIGHT_CHART_URL
+  ? [process.env.KOSPI_NIGHT_CHART_URL]
+  : [
+      'https://api.stock.naver.com/chart/futures/KR4106V30007?periodType=dayCandle&count=240',
+    ];
+
+const chartCache = { at: 0, data: null };
+const CHART_CACHE_MS = 30000;
+
+// 시각을 ms 타임스탬프로. "20260616223000" / "2026-06-16T22:30" / ISO 모두 허용.
+function toTime(v) {
+  if (v == null) return null;
+  if (typeof v === 'number') return v < 1e12 ? v * 1000 : v;
+  const s = String(v).trim();
+  const digits = s.replace(/\D/g, '');
+  if (digits.length >= 8) {
+    const y = digits.slice(0, 4), mo = digits.slice(4, 6), d = digits.slice(6, 8);
+    const hh = digits.slice(8, 10) || '00', mm = digits.slice(10, 12) || '00';
+    const t = Date.parse(`${y}-${mo}-${d}T${hh}:${mm}:00+09:00`);
+    if (Number.isFinite(t)) return t;
+  }
+  const t = Date.parse(s);
+  return Number.isFinite(t) ? t : null;
+}
+
+// 다양한 차트 응답 형태에서 [{t, v}] 시계열을 너그럽게 뽑아낸다.
+function parseSeries(body) {
+  let obj;
+  try {
+    obj = JSON.parse(body);
+  } catch (_) {
+    return null;
+  }
+  const arr =
+    obj.priceInfos ||
+    (obj.result && obj.result.priceInfos) ||
+    obj.datas ||
+    (Array.isArray(obj) ? obj : null);
+  if (!Array.isArray(arr)) return null;
+
+  const out = [];
+  for (const it of arr) {
+    let t, v;
+    if (Array.isArray(it)) {
+      t = toTime(it[0]);
+      v = toNum(it[4] ?? it[1]); // [날짜,시,고,저,종,...] → 종가
+    } else if (it && typeof it === 'object') {
+      t = toTime(it.localDateTime ?? it.localDate ?? it.time ?? it.dt ?? it.date);
+      v = toNum(it.closePrice ?? it.currentPrice ?? it.close ?? it.tradePrice ?? it.price);
+    }
+    if (t != null && v != null) out.push({ t, v });
+  }
+  out.sort((a, b) => a.t - b.t);
+  return out.length ? out : null;
+}
+
+function demoSeries(points = 120) {
+  const base = 345.0;
+  const now = Date.now();
+  const out = [];
+  let v = base;
+  for (let i = points - 1; i >= 0; i--) {
+    v += (Math.random() - 0.5) * 0.9;
+    out.push({ t: now - i * 60000, v: +v.toFixed(2) });
+  }
+  // 마지막 값을 현재 데모 시세와 맞춘다
+  out[out.length - 1].v = +(base + Math.sin(now / 60000) * 3).toFixed(2);
+  return out;
+}
+
+async function fetchKospiHistory() {
+  if (chartCache.data && Date.now() - chartCache.at < CHART_CACHE_MS) {
+    return chartCache.data;
+  }
+  const errors = [];
+  for (const url of KOSPI_CHART_SOURCES) {
+    try {
+      const { status, body } = await httpGetText(url);
+      if (status !== 200) {
+        errors.push(`${url} → HTTP ${status}`);
+        continue;
+      }
+      const series = parseSeries(body);
+      if (series) {
+        const data = { status: 'ok', source: new URL(url).host, series };
+        chartCache.at = Date.now();
+        chartCache.data = data;
+        return data;
+      }
+      errors.push(`${url} → 파싱 실패`);
+    } catch (e) {
+      errors.push(`${url} → ${e.message}`);
+    }
+  }
+  if (chartCache.data) return { ...chartCache.data, status: 'stale', errors };
+  return { status: 'unavailable', errors };
+}
+
+app.get('/api/kospi-night/history', async (req, res) => {
+  if (process.env.KOSPI_NIGHT_DEMO === '1' || req.query.demo === '1') {
+    return res.json({ status: 'ok', source: 'demo', series: demoSeries() });
+  }
+  try {
+    res.json(await fetchKospiHistory());
+  } catch (e) {
+    res.status(502).json({ status: 'error', message: e.message });
+  }
+});
+
 app.get('/api/kospi-night', async (req, res) => {
   if (process.env.KOSPI_NIGHT_DEMO === '1' || req.query.demo === '1') {
     const base = 345.0;

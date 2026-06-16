@@ -37,9 +37,12 @@
       <div class="quote-value" id="quoteValue">—</div>
       <div class="quote-change" id="quoteChange">불러오는 중…</div>
 
-      <svg class="spark" id="spark" viewBox="0 0 600 120" preserveAspectRatio="none" aria-hidden="true">
-        <polyline id="sparkLine" fill="none" stroke-width="2" points="" />
-      </svg>
+      <div class="chart-head">
+        <span class="chart-title">가격 추이</span>
+        <span class="chart-note" id="chartNote"></span>
+      </div>
+      <svg class="chart" id="chart" viewBox="0 0 720 300"
+           role="img" aria-label="코스피200 야간선물 가격 추이 차트"></svg>
 
       <div class="quote-meta">
         <div><span>전일종가</span><b id="mPrev">—</b></div>
