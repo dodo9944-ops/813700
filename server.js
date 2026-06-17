@@ -7,6 +7,12 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
+
+// 루트(/)는 코스피200 야간선물 대시보드(손물 클론)를 제공한다.
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'sonmul.html'));
+});
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 const bridgeState = {
@@ -415,6 +421,101 @@ async function fetchKospiHistory() {
   if (chartCache.data) return { ...chartCache.data, status: 'stale', errors };
   return { status: 'unavailable', errors };
 }
+
+// ── 야간선물 캔들(OHLC) ────────────────────────────────────────────────
+// 캔들차트용 시고저종. 네이버 차트 응답의 시/고/저/종을 그대로 추출한다.
+function parseCandles(body) {
+  let obj;
+  try {
+    obj = JSON.parse(body);
+  } catch (_) {
+    return null;
+  }
+  const arr =
+    obj.priceInfos ||
+    (obj.result && obj.result.priceInfos) ||
+    obj.datas ||
+    (Array.isArray(obj) ? obj : null);
+  if (!Array.isArray(arr)) return null;
+
+  const out = [];
+  for (const it of arr) {
+    let t, o, h, l, c;
+    if (Array.isArray(it)) {
+      // [날짜, 시, 고, 저, 종, ...]
+      t = toTime(it[0]);
+      o = toNum(it[1]); h = toNum(it[2]); l = toNum(it[3]); c = toNum(it[4]);
+    } else if (it && typeof it === 'object') {
+      t = toTime(it.localDateTime ?? it.localDate ?? it.time ?? it.dt ?? it.date);
+      o = toNum(it.openPrice ?? it.open ?? it.startPrice);
+      h = toNum(it.highPrice ?? it.high);
+      l = toNum(it.lowPrice ?? it.low);
+      c = toNum(it.closePrice ?? it.close ?? it.currentPrice ?? it.tradePrice ?? it.price);
+    }
+    if (t != null && c != null) {
+      // 일부 필드가 비면 종가로 메운다(라인 폴백용)
+      out.push({ t, o: o ?? c, h: h ?? c, l: l ?? c, c });
+    }
+  }
+  out.sort((a, b) => a.t - b.t);
+  return out.length ? out : null;
+}
+
+const candleCache = { at: 0, data: null };
+
+function demoCandles(points = 80, stepMs = 60000) {
+  const base = 345.0, now = Date.now(), out = [];
+  let prev = base;
+  for (let i = points - 1; i >= 0; i--) {
+    const o = prev;
+    const drift = (Math.random() - 0.5) * 1.2;
+    const c = +(o + drift).toFixed(2);
+    const h = +(Math.max(o, c) + Math.random() * 0.6).toFixed(2);
+    const l = +(Math.min(o, c) - Math.random() * 0.6).toFixed(2);
+    out.push({ t: now - i * stepMs, o: +o.toFixed(2), h, l, c });
+    prev = c;
+  }
+  return out;
+}
+
+async function fetchKospiCandles() {
+  if (candleCache.data && Date.now() - candleCache.at < CHART_CACHE_MS) {
+    return candleCache.data;
+  }
+  const errors = [];
+  for (const url of KOSPI_CHART_SOURCES) {
+    try {
+      const { status, body } = await httpGetText(url);
+      if (status !== 200) {
+        errors.push(`${url} → HTTP ${status}`);
+        continue;
+      }
+      const candles = parseCandles(body);
+      if (candles) {
+        const data = { status: 'ok', source: new URL(url).host, candles };
+        candleCache.at = Date.now();
+        candleCache.data = data;
+        return data;
+      }
+      errors.push(`${url} → 파싱 실패`);
+    } catch (e) {
+      errors.push(`${url} → ${e.message}`);
+    }
+  }
+  if (candleCache.data) return { ...candleCache.data, status: 'stale', errors };
+  return { status: 'unavailable', errors };
+}
+
+app.get('/api/kospi-night/candles', async (req, res) => {
+  if (process.env.KOSPI_NIGHT_DEMO === '1' || req.query.demo === '1') {
+    return res.json({ status: 'ok', source: 'demo', candles: demoCandles() });
+  }
+  try {
+    res.json(await fetchKospiCandles());
+  } catch (e) {
+    res.status(502).json({ status: 'error', message: e.message });
+  }
+});
 
 app.get('/api/kospi-night/history', async (req, res) => {
   if (process.env.KOSPI_NIGHT_DEMO === '1' || req.query.demo === '1') {

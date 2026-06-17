@@ -4,10 +4,21 @@
 
 ## 구성
 
-- `/` — 메타스페이스 로비 (2D 캔버스 월드, WASD 이동)
-- `/coop.html` — 메타공간 협동조합 소개 및 가입 신청
-- `/bridge.html` — 텔레그램 ↔ 메타공간 브릿지 (온라인)
-- `/kospi.html` — 코스피200 야간선물(EUREX 연계) 실시간 지수 뷰어
+- `/` — **손물(SONMUL) 코스피200 야간선물 대시보드** (실시간 시세 · 캔들차트 · 호가창 · 체결)
+- `/kospi.html` — 코스피200 야간선물 간단 뷰 (라인 차트)
+- `/metaspace` 계열 — 메타스페이스 로비/협동조합/텔레봇 브릿지 (`index.html`, `coop.html`, `bridge.html`)
+
+### 손물 대시보드 (`/` · `public/sonmul.html`)
+
+[sonmul.co.kr](https://sonmul.co.kr/) 스타일의 코스피200 야간선물 실시간 대시보드:
+
+- 현재가·등락·등락률·시고저·전일종가 실시간 티커 (한국식: 상승=빨강/하락=파랑)
+- 캔들차트(일봉) + 실시간 체결 추이(라인) 전환
+- 10호가 호가창(잔량 막대) · 체결 테이프
+- 거래시간 평일 18:00 ~ 익일 06:00 (KST) 세션 상태 표시
+- 시세 소스가 막힌 환경은 `?demo=1` 로 데모 동작 확인
+
+> 호가·체결은 현재가를 기준으로 재구성한 모의 정보이며 실제 체결과 다릅니다.
 
 ## 실행
 
@@ -43,6 +54,7 @@ npm start
 - `GET /api/kospi-night` — 정규화된 시세 JSON
   (`{ status, value, change, changeRate, prevClose, time, source, session }`)
 - `GET /api/kospi-night/history` — 차트용 시계열 JSON (`{ status, source, series:[{t,v}] }`)
+- `GET /api/kospi-night/candles` — 캔들차트용 OHLC JSON (`{ status, source, candles:[{t,o,h,l,c}] }`)
 - `?demo=1` — 데이터 소스 없이 동작 확인용 데모 시세/시계열
 
 ### 데이터 소스 설정
