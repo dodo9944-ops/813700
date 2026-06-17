@@ -31,7 +31,7 @@
     name: $('quoteName'), src: $('srcBadge'), value: $('quoteValue'), change: $('quoteChange'),
     open: $('mOpen'), high: $('mHigh'), low: $('mLow'), prev: $('mPrev'), time: $('mTime'), source: $('mSource'),
     chart: $('chart'), chartNote: $('chartNote'), tfGroup: $('tfGroup'),
-    book: $('orderBook'), askSum: $('askSum'), bidSum: $('bidSum'),
+    book: $('orderBook'), askSum: $('askSum'), bidSum: $('bidSum'), bookMode: $('bookMode'),
     trades: $('trades'), auto: $('autoToggle'), refresh: $('refreshBtn'), hint: $('hint'),
   };
 
@@ -40,6 +40,7 @@
     candlesDay: [],            // [{t,o,h,l,c}] 일봉 (서버/직접)
     ticks: [],                 // [{t,v}] 실시간 체결 누적
     trades: [],                // 체결 테이프
+    realBook: null,            // 실거래 호가({asks,bids,...}) 또는 null(=모의)
     tf: 'day',
   };
   let timer = null, clockTimer = null;
@@ -216,42 +217,68 @@
     const x = Math.sin(seed * 12.9898) * 43758.5453;
     return 1 + Math.floor((x - Math.floor(x)) * 480);
   }
+  // 실거래 호가(state.realBook)가 있으면 그대로, 없으면 현재가 기준 모의 호가.
+  function buildSyntheticBook() {
+    const q = state.quote; if (!q || !Number.isFinite(q.value)) return null;
+    const cur = roundTick(q.value), asks = [], bids = [];
+    for (let i = 1; i <= 10; i++) asks.push({ px: cur + i * TICK, qty: seededQty(Math.round((cur + i * TICK) * 100)) });
+    for (let i = 1; i <= 10; i++) bids.push({ px: cur - i * TICK, qty: seededQty(Math.round((cur - i * TICK) * 100)) });
+    return { asks, bids, askSum: asks.reduce((s, a) => s + a.qty, 0), bidSum: bids.reduce((s, b) => s + b.qty, 0) };
+  }
   function renderBook() {
     const q = state.quote; if (!q || !Number.isFinite(q.value)) { el.book.replaceChildren(); return; }
-    const cur = roundTick(q.value);
-    const asks = [], bids = [];
-    for (let i = 10; i >= 1; i--) asks.push({ px: cur + i * TICK, qty: seededQty(Math.round((cur + i * TICK) * 100)) });
-    for (let i = 1; i <= 10; i++) bids.push({ px: cur - i * TICK, qty: seededQty(Math.round((cur - i * TICK) * 100)) });
-    const maxQty = Math.max(...asks.map((a) => a.qty), ...bids.map((b) => b.qty), 1);
-    const askSum = asks.reduce((s, a) => s + a.qty, 0), bidSum = bids.reduce((s, b) => s + b.qty, 0);
+    const real = state.realBook;
+    const book = real || buildSyntheticBook();
+    if (!book) { el.book.replaceChildren(); return; }
+    el.bookMode.textContent = real ? '실시간 · 10호가' : '모의 · 10호가';
+    el.bookMode.style.color = real ? 'var(--ok)' : '';
+
+    // 매도호가는 높은 가격이 위로 오도록 내림차순 표시
+    const asks = book.asks.slice().sort((a, b) => b.px - a.px);
+    const bids = book.bids.slice().sort((a, b) => b.px - a.px);
+    const maxQty = Math.max(...asks.map((a) => a.qty || 0), ...bids.map((b) => b.qty || 0), 1);
+    const cur = real
+      ? (bids[0] && asks[asks.length - 1] ? (bids[0].px + asks[asks.length - 1].px) / 2 : q.value)
+      : roundTick(q.value);
 
     const frag = document.createDocumentFragment();
-    const row = (cls, px, qty) => {
+    const mkRow = (cls, px, qty) => {
       const r = document.createElement('div'); r.className = 'sm-book-row ' + cls;
-      const w = ((qty / maxQty) * 100).toFixed(1) + '%';
-      if (cls === 'ask') {
-        r.innerHTML = `<div class="qty"><span class="bar" style="width:${w}"></span><span>${fmtInt(qty)}</span></div><div class="px">${fmt(px)}</div>`;
-      } else {
-        r.innerHTML = `<div class="px">${fmt(px)}</div><div class="qty"><span class="bar" style="width:${w}"></span><span>${fmtInt(qty)}</span></div>`;
-      }
+      const w = ((((qty || 0) / maxQty) * 100)).toFixed(1) + '%';
+      // 가격(좌) / 잔량(우)로 통일
+      r.innerHTML = `<div class="px">${fmt(px)}</div><div class="qty"><span class="bar" style="width:${w}"></span><span>${fmtInt(qty || 0)}</span></div>`;
       return r;
     };
-    // 매도호가는 위(높은 가격)부터. 좌측 가격 / 우측 잔량 정렬을 맞추기 위해 ask는 [가격|잔량] 형태로 통일
-    asks.forEach((a) => {
-      const r = document.createElement('div'); r.className = 'sm-book-row ask';
-      const w = ((a.qty / maxQty) * 100).toFixed(1) + '%';
-      r.innerHTML = `<div class="px">${fmt(a.px)}</div><div class="qty"><span class="bar" style="width:${w}"></span><span>${fmtInt(a.qty)}</span></div>`;
-      frag.appendChild(r);
-    });
+    asks.forEach((a) => frag.appendChild(mkRow('ask', a.px, a.qty)));
     const c = document.createElement('div'); c.className = 'sm-book-row cur';
     const tone = q.change > 0 ? 'var(--up)' : q.change < 0 ? 'var(--down)' : 'var(--flat)';
     c.innerHTML = `<div class="px" style="color:${tone}">${fmt(cur)}</div><div class="qty"><span>현재가</span></div>`;
     frag.appendChild(c);
-    bids.forEach((b) => frag.appendChild(row('bid', b.px, b.qty)));
+    bids.forEach((b) => frag.appendChild(mkRow('bid', b.px, b.qty)));
 
     el.book.replaceChildren(frag);
-    el.askSum.textContent = fmtInt(askSum);
-    el.bidSum.textContent = fmtInt(bidSum);
+    el.askSum.textContent = fmtInt(book.askSum);
+    el.bidSum.textContent = fmtInt(book.bidSum);
+  }
+
+  // 실거래 호가 로딩(서버 프록시 전용 — CORS로 직접 호출 불가).
+  async function loadOrderbook() {
+    if (forceDemo) {
+      try { const r = await fetch(apiBase + '/api/kospi-night/orderbook?demo=1', { cache: 'no-store' }); if (r.ok) { const d = await r.json(); if (d.status === 'ok' && d.asks) { state.realBook = null; /* 데모는 모의로 취급 */ } } } catch (_) {}
+      renderBook(); return;
+    }
+    try {
+      const r = await fetch(apiBase + '/api/kospi-night/orderbook', { cache: 'no-store' });
+      if (r.ok) {
+        const d = await r.json();
+        if ((d.status === 'ok' || d.status === 'stale') && Array.isArray(d.asks) && Array.isArray(d.bids) && d.asks.length && d.bids.length) {
+          state.realBook = { asks: d.asks, bids: d.bids, askSum: d.askSum, bidSum: d.bidSum };
+          renderBook(); return;
+        }
+      }
+    } catch (_) {}
+    state.realBook = null; // 실거래 호가 미설정/실패 → 모의 호가로 폴백
+    renderBook();
   }
 
   // ── 체결 테이프 ───────────────────────────────────────
@@ -357,10 +384,11 @@
     el.chartNote.textContent = state.tf === 'tick' ? '실시간 체결 추이 (이번 세션 누적)' : el.chartNote.textContent;
     drawChart();
   });
-  function schedule() { if (timer) clearInterval(timer); if (el.auto.checked) timer = setInterval(loadQuote, 5000); }
-  el.refresh.addEventListener('click', loadQuote);
+  function tick() { loadQuote(); loadOrderbook(); }
+  function schedule() { if (timer) clearInterval(timer); if (el.auto.checked) timer = setInterval(tick, 5000); }
+  el.refresh.addEventListener('click', tick);
   el.auto.addEventListener('change', schedule);
-  document.addEventListener('visibilitychange', () => { if (!document.hidden && el.auto.checked) loadQuote(); });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && el.auto.checked) tick(); });
 
   function tickClock() {
     const s = nightSession();
@@ -371,5 +399,6 @@
   drawChart();
   loadCandles();
   loadQuote();
+  loadOrderbook();
   schedule();
 })();

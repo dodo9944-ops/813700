@@ -55,6 +55,29 @@ npm start
   (`{ status, value, change, changeRate, prevClose, time, source, session }`)
 - `GET /api/kospi-night/history` — 차트용 시계열 JSON (`{ status, source, series:[{t,v}] }`)
 - `GET /api/kospi-night/candles` — 캔들차트용 OHLC JSON (`{ status, source, candles:[{t,o,h,l,c}] }`)
+- `GET /api/kospi-night/orderbook` — 실시간 호가 JSON (`{ status, source, asks:[{px,qty}], bids:[{px,qty}], askSum, bidSum }`)
+
+### 실시간 호가 피드 연결
+
+지수(KPI200)에는 호가창이 없고 호가는 **실거래 선물 종목**에만 존재합니다. 무료
+공개 소스로는 KOSPI200 야간선물 호가를 안정적으로 받기 어려워, 어떤 실거래
+피드든 꽂으면 동작하도록 업스트림을 환경변수로 지정합니다. 응답 형식은
+방어적으로 파싱합니다(증권사 OpenAPI의 `askp1..10`/`bidp1..10`/`askp_rsqn1..10`
+평면 필드, `asks`/`bids` 배열, 호가 레벨 객체 배열 등). 어떤 소스도 응답하지
+않으면 가짜 호가를 만들지 않고 `status:"unavailable"` 을 돌려주며, 화면은 현재가
+기준 **모의 호가**(라벨로 명시)로 폴백합니다.
+
+| 환경변수 | 설명 |
+|----------|------|
+| `KOSPI_NIGHT_ORDERBOOK_URL` | 호가 JSON 엔드포인트(설정 시 이 URL만 사용) |
+| `KOSPI_NIGHT_ORDERBOOK_HEADERS` | 인증 헤더 JSON 문자열 (예: `{"authorization":"Bearer ...","appkey":"..."}`) |
+| `KOSPI_NIGHT_FUTURES_CODE` | 네이버 best-effort용 야간선물 종목코드 |
+
+> 예) 한국투자증권(KIS) 등 증권사 실시간 선물 호가 REST 응답을
+> `KOSPI_NIGHT_ORDERBOOK_URL` 에 지정하고 토큰/앱키를
+> `KOSPI_NIGHT_ORDERBOOK_HEADERS` 로 넘기면 화면 호가창에 "실시간" 라벨과 함께
+> 실거래 호가가 표시됩니다. 배포 환경에서 해당 호스트로의 아웃바운드 접근이
+> 허용돼야 합니다.
 - `?demo=1` — 데이터 소스 없이 동작 확인용 데모 시세/시계열
 
 ### 데이터 소스 설정
