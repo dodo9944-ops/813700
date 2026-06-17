@@ -231,6 +231,35 @@ function httpGetText(url, timeoutMs = 7000, extraHeaders = {}) {
   });
 }
 
+function httpPostJson(url, bodyObj, extraHeaders = {}, timeoutMs = 7000) {
+  return new Promise((resolve, reject) => {
+    const payload = JSON.stringify(bodyObj || {});
+    const u = new URL(url);
+    const req = https.request(
+      {
+        hostname: u.hostname,
+        port: u.port || 443,
+        path: u.pathname + u.search,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Content-Length': Buffer.byteLength(payload),
+          ...extraHeaders,
+        },
+      },
+      (res) => {
+        let body = '';
+        res.on('data', (c) => (body += c));
+        res.on('end', () => resolve({ status: res.statusCode, body }));
+      }
+    );
+    req.on('error', reject);
+    req.setTimeout(timeoutMs, () => req.destroy(new Error('timeout')));
+    req.write(payload);
+    req.end();
+  });
+}
+
 // 문자열/숫자 어떤 형태든 숫자로. "1,390.85" → 1390.85
 function toNum(v) {
   if (v == null) return null;
@@ -583,8 +612,11 @@ function parseOrderbook(body) {
   for (const pre of ['', 'futs_']) {
     const asks = [], bids = [];
     for (let i = 1; i <= 10; i++) {
-      const ap = toNum(o[`${pre}askp${i}`]), aq = toNum(o[`${pre}askp_rsqn${i}`] ?? o[`${pre}askp_csnu${i}`]);
-      const bp = toNum(o[`${pre}bidp${i}`]), bq = toNum(o[`${pre}bidp_rsqn${i}`] ?? o[`${pre}bidp_csnu${i}`]);
+      const ap = toNum(o[`${pre}askp${i}`]);
+      // 잔량은 접두사 유무가 가격과 다를 수 있다(KIS: futs_askp1 + askp_rsqn1).
+      const aq = toNum(o[`${pre}askp_rsqn${i}`] ?? o[`askp_rsqn${i}`] ?? o[`${pre}askp_csnu${i}`]);
+      const bp = toNum(o[`${pre}bidp${i}`]);
+      const bq = toNum(o[`${pre}bidp_rsqn${i}`] ?? o[`bidp_rsqn${i}`] ?? o[`${pre}bidp_csnu${i}`]);
       if (ap != null) asks.push({ px: ap, qty: aq != null ? aq : 0 });
       if (bp != null) bids.push({ px: bp, qty: bq != null ? bq : 0 });
     }
@@ -617,14 +649,83 @@ function demoOrderbook() {
   return { status: 'ok', source: 'demo', ...normalizeBook(asks, bids) };
 }
 
+// ── 한국투자증권(KIS) OpenAPI 선물 호가 프로바이더 ──────────────────────
+// 환경변수가 모두 있으면 KIS 를 1순위 소스로 쓴다.
+//   KIS_APP_KEY, KIS_APP_SECRET   앱키/시크릿
+//   KIS_FUTURES_CODE              호가를 받을 선물 종목코드(예: 101W 시리즈 근월물)
+//   KIS_BASE_URL                  (선택) 기본 https://openapi.koreainvestment.com:9443
+//   KIS_TR_ID                     (선택) 기본 FHMIF10010000 (선물옵션 시세호가)
+//   KIS_MRKT_DIV                  (선택) 기본 F (선물)
+// OAuth 토큰은 발급 후 메모리에 캐시한다(KIS 토큰 유효 24h·발급 빈도 제한).
+const kisCfg = () => ({
+  appkey: process.env.KIS_APP_KEY,
+  appsecret: process.env.KIS_APP_SECRET,
+  code: process.env.KIS_FUTURES_CODE,
+  base: process.env.KIS_BASE_URL || 'https://openapi.koreainvestment.com:9443',
+  trId: process.env.KIS_TR_ID || 'FHMIF10010000',
+  mrkt: process.env.KIS_MRKT_DIV || 'F',
+});
+const kisEnabled = () => { const c = kisCfg(); return !!(c.appkey && c.appsecret && c.code); };
+
+const kisToken = { value: null, expiresAt: 0 };
+async function getKisToken() {
+  const c = kisCfg();
+  if (kisToken.value && Date.now() < kisToken.expiresAt - 60000) return kisToken.value;
+  const { status, body } = await httpPostJson(c.base + '/oauth2/tokenP', {
+    grant_type: 'client_credentials', appkey: c.appkey, appsecret: c.appsecret,
+  });
+  if (status !== 200) throw new Error(`KIS 토큰 발급 실패 HTTP ${status}`);
+  const j = JSON.parse(body);
+  if (!j.access_token) throw new Error('KIS 토큰 응답에 access_token 없음');
+  kisToken.value = j.access_token;
+  kisToken.expiresAt = Date.now() + (Number(j.expires_in) || 86400) * 1000;
+  return kisToken.value;
+}
+
+async function fetchKisOrderbook() {
+  const c = kisCfg();
+  const token = await getKisToken();
+  const url = c.base +
+    '/uapi/domestic-futureoption/v1/quotations/inquire-asking-price' +
+    `?FID_COND_MRKT_DIV_CODE=${encodeURIComponent(c.mrkt)}` +
+    `&FID_INPUT_ISCD=${encodeURIComponent(c.code)}`;
+  const { status, body } = await httpGetText(url, 7000, {
+    authorization: `Bearer ${token}`,
+    appkey: c.appkey,
+    appsecret: c.appsecret,
+    tr_id: c.trId,
+    custtype: 'P',
+  });
+  if (status !== 200) throw new Error(`KIS 호가 조회 HTTP ${status}`);
+  const book = parseOrderbook(body); // output1 의 futs_askp1.. / askp_rsqn1.. 평면 필드를 파싱
+  if (!book) throw new Error('KIS 호가 파싱 실패');
+  return { status: 'ok', source: 'KIS(한국투자증권)', fetchedAt: new Date().toISOString(), ...book };
+}
+
 async function fetchOrderbook() {
   if (obCache.data && Date.now() - obCache.at < OB_CACHE_MS) return obCache.data;
+
+  const errors = [];
+
+  // 1순위: KIS OpenAPI(설정 시)
+  if (kisEnabled()) {
+    try {
+      const data = await fetchKisOrderbook();
+      obCache.at = Date.now(); obCache.data = data;
+      return data;
+    } catch (e) {
+      if (obCache.data) return { ...obCache.data, status: 'stale', errors: [`KIS → ${e.message}`] };
+      errors.push(`KIS → ${e.message}`); // KIS 실패 → 아래 일반 소스로 폴백
+    }
+  }
+
   const sources = buildOrderbookSources();
   if (!sources.length) {
-    return { status: 'unavailable', reason: '실거래 호가 소스가 설정되지 않았습니다 (KOSPI_NIGHT_ORDERBOOK_URL 또는 KOSPI_NIGHT_FUTURES_CODE).' };
+    return errors.length
+      ? { status: 'unavailable', errors }
+      : { status: 'unavailable', reason: '실거래 호가 소스가 설정되지 않았습니다 (KIS_* 또는 KOSPI_NIGHT_ORDERBOOK_URL / KOSPI_NIGHT_FUTURES_CODE).' };
   }
   const headers = orderbookHeaders();
-  const errors = [];
   for (const url of sources) {
     try {
       const { status, body } = await httpGetText(url, 7000, headers);

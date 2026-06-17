@@ -67,17 +67,35 @@ npm start
 않으면 가짜 호가를 만들지 않고 `status:"unavailable"` 을 돌려주며, 화면은 현재가
 기준 **모의 호가**(라벨로 명시)로 폴백합니다.
 
+소스 우선순위: **① KIS OpenAPI(설정 시) → ② 일반 URL/네이버 best-effort → ③ 모의**.
+
+#### ① 한국투자증권(KIS) OpenAPI — 권장
+
+[KIS Developers](https://apiportal.koreainvestment.com/) 앱키/시크릿을 발급받아
+아래 환경변수만 설정하면 됩니다. 서버가 OAuth 토큰을 발급·캐시(유효 24h)한 뒤
+선물옵션 시세호가 API(`/uapi/domestic-futureoption/v1/quotations/inquire-asking-price`,
+`tr_id: FHMIF10010000`)를 호출해 호가를 정규화합니다.
+
+| 환경변수 | 설명 |
+|----------|------|
+| `KIS_APP_KEY` | KIS 앱키 |
+| `KIS_APP_SECRET` | KIS 앱시크릿 |
+| `KIS_FUTURES_CODE` | 호가를 받을 선물 종목코드(예: KOSPI200 선물 근월물) |
+| `KIS_BASE_URL` | (선택) 기본 `https://openapi.koreainvestment.com:9443` |
+| `KIS_TR_ID` | (선택) 기본 `FHMIF10010000` |
+| `KIS_MRKT_DIV` | (선택) 기본 `F`(선물) |
+
+#### ② 임의의 호가 JSON 소스 (그 외 증권사·자체 피드)
+
 | 환경변수 | 설명 |
 |----------|------|
 | `KOSPI_NIGHT_ORDERBOOK_URL` | 호가 JSON 엔드포인트(설정 시 이 URL만 사용) |
 | `KOSPI_NIGHT_ORDERBOOK_HEADERS` | 인증 헤더 JSON 문자열 (예: `{"authorization":"Bearer ...","appkey":"..."}`) |
 | `KOSPI_NIGHT_FUTURES_CODE` | 네이버 best-effort용 야간선물 종목코드 |
 
-> 예) 한국투자증권(KIS) 등 증권사 실시간 선물 호가 REST 응답을
-> `KOSPI_NIGHT_ORDERBOOK_URL` 에 지정하고 토큰/앱키를
-> `KOSPI_NIGHT_ORDERBOOK_HEADERS` 로 넘기면 화면 호가창에 "실시간" 라벨과 함께
-> 실거래 호가가 표시됩니다. 배포 환경에서 해당 호스트로의 아웃바운드 접근이
-> 허용돼야 합니다.
+> 실거래 호가가 연결되면 화면 호가창에 초록색 **"실시간"** 라벨이 표시되고,
+> 연결 전에는 현재가 기준 **"모의"** 호가로 폴백합니다. 배포 환경에서 해당
+> 호스트로의 아웃바운드 접근이 허용돼야 합니다(예: `openapi.koreainvestment.com`).
 - `?demo=1` — 데이터 소스 없이 동작 확인용 데모 시세/시계열
 
 ### 데이터 소스 설정
