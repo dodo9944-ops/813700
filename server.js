@@ -7,6 +7,12 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
+
+// 루트(/)는 코스피200 야간선물 대시보드(손물 클론)를 제공한다.
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'sonmul.html'));
+});
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 const bridgeState = {
@@ -199,7 +205,7 @@ const KOSPI_NIGHT_SOURCES = (process.env.KOSPI_NIGHT_API_URL
 const kospiCache = { at: 0, data: null };
 const KOSPI_CACHE_MS = 5000; // 시세 서버 과호출 방지
 
-function httpGetText(url, timeoutMs = 7000) {
+function httpGetText(url, timeoutMs = 7000, extraHeaders = {}) {
   return new Promise((resolve, reject) => {
     const req = https.get(
       url,
@@ -211,6 +217,7 @@ function httpGetText(url, timeoutMs = 7000) {
           'Accept': 'application/json, text/plain, */*',
           'Accept-Language': 'ko-KR,ko;q=0.9',
           'Referer': 'https://m.stock.naver.com/',
+          ...extraHeaders,
         },
       },
       (res) => {
@@ -221,6 +228,35 @@ function httpGetText(url, timeoutMs = 7000) {
     );
     req.on('error', reject);
     req.setTimeout(timeoutMs, () => req.destroy(new Error('timeout')));
+  });
+}
+
+function httpPostJson(url, bodyObj, extraHeaders = {}, timeoutMs = 7000) {
+  return new Promise((resolve, reject) => {
+    const payload = JSON.stringify(bodyObj || {});
+    const u = new URL(url);
+    const req = https.request(
+      {
+        hostname: u.hostname,
+        port: u.port || 443,
+        path: u.pathname + u.search,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Content-Length': Buffer.byteLength(payload),
+          ...extraHeaders,
+        },
+      },
+      (res) => {
+        let body = '';
+        res.on('data', (c) => (body += c));
+        res.on('end', () => resolve({ status: res.statusCode, body }));
+      }
+    );
+    req.on('error', reject);
+    req.setTimeout(timeoutMs, () => req.destroy(new Error('timeout')));
+    req.write(payload);
+    req.end();
   });
 }
 
@@ -415,6 +451,308 @@ async function fetchKospiHistory() {
   if (chartCache.data) return { ...chartCache.data, status: 'stale', errors };
   return { status: 'unavailable', errors };
 }
+
+// ── 야간선물 캔들(OHLC) ────────────────────────────────────────────────
+// 캔들차트용 시고저종. 네이버 차트 응답의 시/고/저/종을 그대로 추출한다.
+function parseCandles(body) {
+  let obj;
+  try {
+    obj = JSON.parse(body);
+  } catch (_) {
+    return null;
+  }
+  const arr =
+    obj.priceInfos ||
+    (obj.result && obj.result.priceInfos) ||
+    obj.datas ||
+    (Array.isArray(obj) ? obj : null);
+  if (!Array.isArray(arr)) return null;
+
+  const out = [];
+  for (const it of arr) {
+    let t, o, h, l, c;
+    if (Array.isArray(it)) {
+      // [날짜, 시, 고, 저, 종, ...]
+      t = toTime(it[0]);
+      o = toNum(it[1]); h = toNum(it[2]); l = toNum(it[3]); c = toNum(it[4]);
+    } else if (it && typeof it === 'object') {
+      t = toTime(it.localDateTime ?? it.localDate ?? it.time ?? it.dt ?? it.date);
+      o = toNum(it.openPrice ?? it.open ?? it.startPrice);
+      h = toNum(it.highPrice ?? it.high);
+      l = toNum(it.lowPrice ?? it.low);
+      c = toNum(it.closePrice ?? it.close ?? it.currentPrice ?? it.tradePrice ?? it.price);
+    }
+    if (t != null && c != null) {
+      // 일부 필드가 비면 종가로 메운다(라인 폴백용)
+      out.push({ t, o: o ?? c, h: h ?? c, l: l ?? c, c });
+    }
+  }
+  out.sort((a, b) => a.t - b.t);
+  return out.length ? out : null;
+}
+
+const candleCache = { at: 0, data: null };
+
+function demoCandles(points = 80, stepMs = 60000) {
+  const base = 345.0, now = Date.now(), out = [];
+  let prev = base;
+  for (let i = points - 1; i >= 0; i--) {
+    const o = prev;
+    const drift = (Math.random() - 0.5) * 1.2;
+    const c = +(o + drift).toFixed(2);
+    const h = +(Math.max(o, c) + Math.random() * 0.6).toFixed(2);
+    const l = +(Math.min(o, c) - Math.random() * 0.6).toFixed(2);
+    out.push({ t: now - i * stepMs, o: +o.toFixed(2), h, l, c });
+    prev = c;
+  }
+  return out;
+}
+
+async function fetchKospiCandles() {
+  if (candleCache.data && Date.now() - candleCache.at < CHART_CACHE_MS) {
+    return candleCache.data;
+  }
+  const errors = [];
+  for (const url of KOSPI_CHART_SOURCES) {
+    try {
+      const { status, body } = await httpGetText(url);
+      if (status !== 200) {
+        errors.push(`${url} → HTTP ${status}`);
+        continue;
+      }
+      const candles = parseCandles(body);
+      if (candles) {
+        const data = { status: 'ok', source: new URL(url).host, candles };
+        candleCache.at = Date.now();
+        candleCache.data = data;
+        return data;
+      }
+      errors.push(`${url} → 파싱 실패`);
+    } catch (e) {
+      errors.push(`${url} → ${e.message}`);
+    }
+  }
+  if (candleCache.data) return { ...candleCache.data, status: 'stale', errors };
+  return { status: 'unavailable', errors };
+}
+
+app.get('/api/kospi-night/candles', async (req, res) => {
+  if (process.env.KOSPI_NIGHT_DEMO === '1' || req.query.demo === '1') {
+    return res.json({ status: 'ok', source: 'demo', candles: demoCandles() });
+  }
+  try {
+    res.json(await fetchKospiCandles());
+  } catch (e) {
+    res.status(502).json({ status: 'error', message: e.message });
+  }
+});
+
+// ── 야간선물 실시간 호가(order book) ──────────────────────────────────
+// 지수(KPI200)에는 호가가 없고, 실거래 선물 종목에만 호가가 있다. 무료 공개
+// 소스로는 KOSPI200 야간선물 호가를 안정적으로 받기 어려우므로, 어떤 실거래
+// 피드든 꽂으면 동작하도록 업스트림을 환경변수로 지정한다.
+//
+//   KOSPI_NIGHT_ORDERBOOK_URL     호가 JSON 엔드포인트(설정 시 이 URL만 사용)
+//   KOSPI_NIGHT_ORDERBOOK_HEADERS 인증 헤더 JSON 문자열
+//                                 예) {"authorization":"Bearer ...","appkey":"..."}
+//   KOSPI_NIGHT_FUTURES_CODE      네이버 best-effort용 야간선물 종목코드
+//
+// 응답 형식이 제각각이어도 견디도록 방어적으로 파싱한다(증권사 OpenAPI의
+// askp1..10 / bidp1..10 / askp_rsqn1..10 평면 필드, asks/bids 배열, 네이버
+// 호가 배열 등). 어떤 소스도 응답하지 않으면 status:'unavailable' 을 돌려준다.
+function buildOrderbookSources() {
+  if (process.env.KOSPI_NIGHT_ORDERBOOK_URL) return [process.env.KOSPI_NIGHT_ORDERBOOK_URL];
+  const code = process.env.KOSPI_NIGHT_FUTURES_CODE; // 예: 101W12, 165...
+  if (!code) return []; // 종목코드가 없으면 best-effort 후보도 없음 → unavailable
+  return [
+    `https://api.stock.naver.com/futures/${code}/askingPrice`,
+    `https://m.stock.naver.com/api/stock/${code}/askingPrice`,
+    `https://api.stock.naver.com/stock/${code}/askingPrice`,
+  ];
+}
+
+function orderbookHeaders() {
+  if (!process.env.KOSPI_NIGHT_ORDERBOOK_HEADERS) return {};
+  try { return JSON.parse(process.env.KOSPI_NIGHT_ORDERBOOK_HEADERS); } catch (_) { return {}; }
+}
+
+// 다양한 호가 응답에서 {asks:[{px,qty}], bids:[{px,qty}]} 를 뽑아낸다.
+function parseOrderbook(body) {
+  let root;
+  try { root = JSON.parse(body); } catch (_) { return null; }
+  // 한 번 감싸진 흔한 컨테이너들을 풀어준다.
+  const o = root.result || root.output || root.output1 || root.datas ||
+    (root.stockInfo && root.stockInfo.askingPrice) || root.askingPrice || root;
+
+  const toLevel = (px, qty) => { const p = toNum(px), q = toNum(qty); return p != null ? { px: p, qty: q != null ? q : 0 } : null; };
+
+  // 1) 명시적 배열 형태: asks/bids, askingPrices, hogaList ...
+  const arrAsk = o.asks || o.askingPriceAsk || o.sellHoga;
+  const arrBid = o.bids || o.askingPriceBid || o.buyHoga;
+  if (Array.isArray(arrAsk) && Array.isArray(arrBid)) {
+    const asks = arrAsk.map((x) => toLevel(x.px ?? x.price ?? x.priceValue ?? x.value, x.qty ?? x.quantity ?? x.remainQuantity ?? x.volume)).filter(Boolean);
+    const bids = arrBid.map((x) => toLevel(x.px ?? x.price ?? x.priceValue ?? x.value, x.qty ?? x.quantity ?? x.remainQuantity ?? x.volume)).filter(Boolean);
+    if (asks.length && bids.length) return normalizeBook(asks, bids);
+  }
+
+  // 2) 호가 레벨이 객체 배열로 한 곳에: [{askPrice,askQty,bidPrice,bidQty}, ...]
+  const levels = o.askingPrices || o.hogaList || o.priceList || (Array.isArray(o) ? o : null);
+  if (Array.isArray(levels) && levels.length) {
+    const asks = [], bids = [];
+    for (const it of levels) {
+      const a = toLevel(it.askPrice ?? it.sellAskpUnit ?? it.sellPrice ?? it.askp, it.askRemainQuantity ?? it.sellAskpRemnVol ?? it.sellRemain ?? it.askVolume);
+      const b = toLevel(it.bidPrice ?? it.buyAskpUnit ?? it.buyPrice ?? it.bidp, it.bidRemainQuantity ?? it.buyAskpRemnVol ?? it.buyRemain ?? it.bidVolume);
+      if (a) asks.push(a); if (b) bids.push(b);
+    }
+    if (asks.length && bids.length) return normalizeBook(asks, bids);
+  }
+
+  // 3) 평면 필드(증권사 OpenAPI 스타일): askp1..10 / bidp1..10 / askp_rsqn / bidp_rsqn
+  //    futs_ 접두사(KIS 선물)도 함께 시도한다.
+  for (const pre of ['', 'futs_']) {
+    const asks = [], bids = [];
+    for (let i = 1; i <= 10; i++) {
+      const ap = toNum(o[`${pre}askp${i}`]);
+      // 잔량은 접두사 유무가 가격과 다를 수 있다(KIS: futs_askp1 + askp_rsqn1).
+      const aq = toNum(o[`${pre}askp_rsqn${i}`] ?? o[`askp_rsqn${i}`] ?? o[`${pre}askp_csnu${i}`]);
+      const bp = toNum(o[`${pre}bidp${i}`]);
+      const bq = toNum(o[`${pre}bidp_rsqn${i}`] ?? o[`bidp_rsqn${i}`] ?? o[`${pre}bidp_csnu${i}`]);
+      if (ap != null) asks.push({ px: ap, qty: aq != null ? aq : 0 });
+      if (bp != null) bids.push({ px: bp, qty: bq != null ? bq : 0 });
+    }
+    if (asks.length && bids.length) return normalizeBook(asks, bids);
+  }
+
+  return null;
+}
+
+// 매도호가 오름차순 → 표시용으로 정렬·절단하고 잔량 합계를 붙인다.
+function normalizeBook(asks, bids) {
+  asks = asks.filter((a) => a.px != null).sort((a, b) => a.px - b.px).slice(0, 10);
+  bids = bids.filter((b) => b.px != null).sort((a, b) => b.px - a.px).slice(0, 10);
+  if (!asks.length || !bids.length) return null;
+  const askSum = asks.reduce((s, a) => s + (a.qty || 0), 0);
+  const bidSum = bids.reduce((s, b) => s + (b.qty || 0), 0);
+  return { asks, bids, askSum, bidSum };
+}
+
+const obCache = { at: 0, data: null };
+const OB_CACHE_MS = 2000;
+
+function demoOrderbook() {
+  const base = 345.0, change = +(Math.sin(Date.now() / 60000) * 3).toFixed(2);
+  const cur = Math.round((base + change) / 0.05) * 0.05;
+  const qty = (seed) => { const x = Math.sin(seed * 12.9898) * 43758.5453; return 1 + Math.floor((x - Math.floor(x)) * 480); };
+  const asks = [], bids = [];
+  for (let i = 1; i <= 10; i++) { const p = +(cur + i * 0.05).toFixed(2); asks.push({ px: p, qty: qty(Math.round(p * 100)) }); }
+  for (let i = 1; i <= 10; i++) { const p = +(cur - i * 0.05).toFixed(2); bids.push({ px: p, qty: qty(Math.round(p * 100)) }); }
+  return { status: 'ok', source: 'demo', ...normalizeBook(asks, bids) };
+}
+
+// ── 한국투자증권(KIS) OpenAPI 선물 호가 프로바이더 ──────────────────────
+// 환경변수가 모두 있으면 KIS 를 1순위 소스로 쓴다.
+//   KIS_APP_KEY, KIS_APP_SECRET   앱키/시크릿
+//   KIS_FUTURES_CODE              호가를 받을 선물 종목코드(예: 101W 시리즈 근월물)
+//   KIS_BASE_URL                  (선택) 기본 https://openapi.koreainvestment.com:9443
+//   KIS_TR_ID                     (선택) 기본 FHMIF10010000 (선물옵션 시세호가)
+//   KIS_MRKT_DIV                  (선택) 기본 F (선물)
+// OAuth 토큰은 발급 후 메모리에 캐시한다(KIS 토큰 유효 24h·발급 빈도 제한).
+const kisCfg = () => ({
+  appkey: process.env.KIS_APP_KEY,
+  appsecret: process.env.KIS_APP_SECRET,
+  code: process.env.KIS_FUTURES_CODE,
+  base: process.env.KIS_BASE_URL || 'https://openapi.koreainvestment.com:9443',
+  trId: process.env.KIS_TR_ID || 'FHMIF10010000',
+  mrkt: process.env.KIS_MRKT_DIV || 'F',
+});
+const kisEnabled = () => { const c = kisCfg(); return !!(c.appkey && c.appsecret && c.code); };
+
+const kisToken = { value: null, expiresAt: 0 };
+async function getKisToken() {
+  const c = kisCfg();
+  if (kisToken.value && Date.now() < kisToken.expiresAt - 60000) return kisToken.value;
+  const { status, body } = await httpPostJson(c.base + '/oauth2/tokenP', {
+    grant_type: 'client_credentials', appkey: c.appkey, appsecret: c.appsecret,
+  });
+  if (status !== 200) throw new Error(`KIS 토큰 발급 실패 HTTP ${status}`);
+  const j = JSON.parse(body);
+  if (!j.access_token) throw new Error('KIS 토큰 응답에 access_token 없음');
+  kisToken.value = j.access_token;
+  kisToken.expiresAt = Date.now() + (Number(j.expires_in) || 86400) * 1000;
+  return kisToken.value;
+}
+
+async function fetchKisOrderbook() {
+  const c = kisCfg();
+  const token = await getKisToken();
+  const url = c.base +
+    '/uapi/domestic-futureoption/v1/quotations/inquire-asking-price' +
+    `?FID_COND_MRKT_DIV_CODE=${encodeURIComponent(c.mrkt)}` +
+    `&FID_INPUT_ISCD=${encodeURIComponent(c.code)}`;
+  const { status, body } = await httpGetText(url, 7000, {
+    authorization: `Bearer ${token}`,
+    appkey: c.appkey,
+    appsecret: c.appsecret,
+    tr_id: c.trId,
+    custtype: 'P',
+  });
+  if (status !== 200) throw new Error(`KIS 호가 조회 HTTP ${status}`);
+  const book = parseOrderbook(body); // output1 의 futs_askp1.. / askp_rsqn1.. 평면 필드를 파싱
+  if (!book) throw new Error('KIS 호가 파싱 실패');
+  return { status: 'ok', source: 'KIS(한국투자증권)', fetchedAt: new Date().toISOString(), ...book };
+}
+
+async function fetchOrderbook() {
+  if (obCache.data && Date.now() - obCache.at < OB_CACHE_MS) return obCache.data;
+
+  const errors = [];
+
+  // 1순위: KIS OpenAPI(설정 시)
+  if (kisEnabled()) {
+    try {
+      const data = await fetchKisOrderbook();
+      obCache.at = Date.now(); obCache.data = data;
+      return data;
+    } catch (e) {
+      if (obCache.data) return { ...obCache.data, status: 'stale', errors: [`KIS → ${e.message}`] };
+      errors.push(`KIS → ${e.message}`); // KIS 실패 → 아래 일반 소스로 폴백
+    }
+  }
+
+  const sources = buildOrderbookSources();
+  if (!sources.length) {
+    return errors.length
+      ? { status: 'unavailable', errors }
+      : { status: 'unavailable', reason: '실거래 호가 소스가 설정되지 않았습니다 (KIS_* 또는 KOSPI_NIGHT_ORDERBOOK_URL / KOSPI_NIGHT_FUTURES_CODE).' };
+  }
+  const headers = orderbookHeaders();
+  for (const url of sources) {
+    try {
+      const { status, body } = await httpGetText(url, 7000, headers);
+      if (status !== 200) { errors.push(`${url} → HTTP ${status}`); continue; }
+      const book = parseOrderbook(body);
+      if (book) {
+        const data = { status: 'ok', source: new URL(url).host, fetchedAt: new Date().toISOString(), ...book };
+        obCache.at = Date.now(); obCache.data = data;
+        return data;
+      }
+      errors.push(`${url} → 파싱 실패`);
+    } catch (e) { errors.push(`${url} → ${e.message}`); }
+  }
+  if (obCache.data) return { ...obCache.data, status: 'stale', errors };
+  return { status: 'unavailable', errors };
+}
+
+app.get('/api/kospi-night/orderbook', async (req, res) => {
+  if (process.env.KOSPI_NIGHT_DEMO === '1' || req.query.demo === '1') {
+    return res.json(demoOrderbook());
+  }
+  try {
+    res.json(await fetchOrderbook());
+  } catch (e) {
+    res.status(502).json({ status: 'error', message: e.message });
+  }
+});
 
 app.get('/api/kospi-night/history', async (req, res) => {
   if (process.env.KOSPI_NIGHT_DEMO === '1' || req.query.demo === '1') {

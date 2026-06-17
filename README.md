@@ -4,10 +4,21 @@
 
 ## 구성
 
-- `/` — 메타스페이스 로비 (2D 캔버스 월드, WASD 이동)
-- `/coop.html` — 메타공간 협동조합 소개 및 가입 신청
-- `/bridge.html` — 텔레그램 ↔ 메타공간 브릿지 (온라인)
-- `/kospi.html` — 코스피200 야간선물(EUREX 연계) 실시간 지수 뷰어
+- `/` — **손물(SONMUL) 코스피200 야간선물 대시보드** (실시간 시세 · 캔들차트 · 호가창 · 체결)
+- `/kospi.html` — 코스피200 야간선물 간단 뷰 (라인 차트)
+- `/metaspace` 계열 — 메타스페이스 로비/협동조합/텔레봇 브릿지 (`index.html`, `coop.html`, `bridge.html`)
+
+### 손물 대시보드 (`/` · `public/sonmul.html`)
+
+[sonmul.co.kr](https://sonmul.co.kr/) 스타일의 코스피200 야간선물 실시간 대시보드:
+
+- 현재가·등락·등락률·시고저·전일종가 실시간 티커 (한국식: 상승=빨강/하락=파랑)
+- 캔들차트(일봉) + 실시간 체결 추이(라인) 전환
+- 10호가 호가창(잔량 막대) · 체결 테이프
+- 거래시간 평일 18:00 ~ 익일 06:00 (KST) 세션 상태 표시
+- 시세 소스가 막힌 환경은 `?demo=1` 로 데모 동작 확인
+
+> 호가·체결은 현재가를 기준으로 재구성한 모의 정보이며 실제 체결과 다릅니다.
 
 ## 실행
 
@@ -43,6 +54,48 @@ npm start
 - `GET /api/kospi-night` — 정규화된 시세 JSON
   (`{ status, value, change, changeRate, prevClose, time, source, session }`)
 - `GET /api/kospi-night/history` — 차트용 시계열 JSON (`{ status, source, series:[{t,v}] }`)
+- `GET /api/kospi-night/candles` — 캔들차트용 OHLC JSON (`{ status, source, candles:[{t,o,h,l,c}] }`)
+- `GET /api/kospi-night/orderbook` — 실시간 호가 JSON (`{ status, source, asks:[{px,qty}], bids:[{px,qty}], askSum, bidSum }`)
+
+### 실시간 호가 피드 연결
+
+지수(KPI200)에는 호가창이 없고 호가는 **실거래 선물 종목**에만 존재합니다. 무료
+공개 소스로는 KOSPI200 야간선물 호가를 안정적으로 받기 어려워, 어떤 실거래
+피드든 꽂으면 동작하도록 업스트림을 환경변수로 지정합니다. 응답 형식은
+방어적으로 파싱합니다(증권사 OpenAPI의 `askp1..10`/`bidp1..10`/`askp_rsqn1..10`
+평면 필드, `asks`/`bids` 배열, 호가 레벨 객체 배열 등). 어떤 소스도 응답하지
+않으면 가짜 호가를 만들지 않고 `status:"unavailable"` 을 돌려주며, 화면은 현재가
+기준 **모의 호가**(라벨로 명시)로 폴백합니다.
+
+소스 우선순위: **① KIS OpenAPI(설정 시) → ② 일반 URL/네이버 best-effort → ③ 모의**.
+
+#### ① 한국투자증권(KIS) OpenAPI — 권장
+
+[KIS Developers](https://apiportal.koreainvestment.com/) 앱키/시크릿을 발급받아
+아래 환경변수만 설정하면 됩니다. 서버가 OAuth 토큰을 발급·캐시(유효 24h)한 뒤
+선물옵션 시세호가 API(`/uapi/domestic-futureoption/v1/quotations/inquire-asking-price`,
+`tr_id: FHMIF10010000`)를 호출해 호가를 정규화합니다.
+
+| 환경변수 | 설명 |
+|----------|------|
+| `KIS_APP_KEY` | KIS 앱키 |
+| `KIS_APP_SECRET` | KIS 앱시크릿 |
+| `KIS_FUTURES_CODE` | 호가를 받을 선물 종목코드(예: KOSPI200 선물 근월물) |
+| `KIS_BASE_URL` | (선택) 기본 `https://openapi.koreainvestment.com:9443` |
+| `KIS_TR_ID` | (선택) 기본 `FHMIF10010000` |
+| `KIS_MRKT_DIV` | (선택) 기본 `F`(선물) |
+
+#### ② 임의의 호가 JSON 소스 (그 외 증권사·자체 피드)
+
+| 환경변수 | 설명 |
+|----------|------|
+| `KOSPI_NIGHT_ORDERBOOK_URL` | 호가 JSON 엔드포인트(설정 시 이 URL만 사용) |
+| `KOSPI_NIGHT_ORDERBOOK_HEADERS` | 인증 헤더 JSON 문자열 (예: `{"authorization":"Bearer ...","appkey":"..."}`) |
+| `KOSPI_NIGHT_FUTURES_CODE` | 네이버 best-effort용 야간선물 종목코드 |
+
+> 실거래 호가가 연결되면 화면 호가창에 초록색 **"실시간"** 라벨이 표시되고,
+> 연결 전에는 현재가 기준 **"모의"** 호가로 폴백합니다. 배포 환경에서 해당
+> 호스트로의 아웃바운드 접근이 허용돼야 합니다(예: `openapi.koreainvestment.com`).
 - `?demo=1` — 데이터 소스 없이 동작 확인용 데모 시세/시계열
 
 ### 데이터 소스 설정
