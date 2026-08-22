@@ -452,6 +452,161 @@ app.get('/api/kospi-night', async (req, res) => {
   }
 });
 
+// ────────────────────────────────────────────────────────────────────────
+// 개별 종목 야간(독일 GDR 연동) 시세 — 삼성전자 / SK하이닉스
+//
+// 코스피200 야간선물과 같은 방어적 파싱·캐시·"가짜 시세 금지" 원칙을 따른다.
+// GDR 시세는 확인된 무료 JSON API가 없어 기본 소스 목록이 비어 있다.
+// 실시간 연동이 필요하면 OVERNIGHT_<심볼>_API_URL / _CHART_URL 환경변수로
+// 자체 데이터 소스(벤더 API, 스크레이퍼 등)를 지정한다. 미설정 시
+// status:'unavailable' 을 반환하며, ?demo=1 로 동작을 확인할 수 있다.
+// ────────────────────────────────────────────────────────────────────────
+
+const OVERNIGHT_SYMBOLS = {
+  SAMSUNG: {
+    name: '삼성전자 야간선물 · 독일 GDR',
+    quoteEnv: 'OVERNIGHT_SAMSUNG_API_URL',
+    chartEnv: 'OVERNIGHT_SAMSUNG_CHART_URL',
+    demoBase: 118.4, // 데모용 임의 기준가 (EUR)
+  },
+  HYNIX: {
+    name: 'SK하이닉스 야간선물 · 독일 GDR',
+    quoteEnv: 'OVERNIGHT_HYNIX_API_URL',
+    chartEnv: 'OVERNIGHT_HYNIX_CHART_URL',
+    demoBase: 96.2, // 데모용 임의 기준가 (EUR)
+  },
+};
+
+const overnightCache = {};
+const overnightChartCache = {};
+
+async function fetchOvernightQuote(symbol) {
+  const cfg = OVERNIGHT_SYMBOLS[symbol];
+  const cache = (overnightCache[symbol] = overnightCache[symbol] || { at: 0, data: null });
+  if (cache.data && Date.now() - cache.at < KOSPI_CACHE_MS) return cache.data;
+
+  const url = process.env[cfg.quoteEnv];
+  const errors = [];
+  if (url) {
+    try {
+      const { status, body } = await httpGetText(url);
+      if (status !== 200) {
+        errors.push(`${url} → HTTP ${status}`);
+      } else {
+        const quote = parseQuote(body);
+        if (quote) {
+          const data = { status: 'ok', source: new URL(url).host, fetchedAt: new Date().toISOString(), ...quote };
+          cache.at = Date.now();
+          cache.data = data;
+          return data;
+        }
+        errors.push(`${url} → 파싱 실패`);
+      }
+    } catch (e) {
+      errors.push(`${url} → ${e.message}`);
+    }
+  } else {
+    errors.push(`${cfg.quoteEnv} 미설정 — 데이터 소스 없음`);
+  }
+  if (cache.data) return { ...cache.data, status: 'stale', errors };
+  return { status: 'unavailable', errors, fetchedAt: new Date().toISOString() };
+}
+
+async function fetchOvernightHistory(symbol) {
+  const cfg = OVERNIGHT_SYMBOLS[symbol];
+  const cache = (overnightChartCache[symbol] = overnightChartCache[symbol] || { at: 0, data: null });
+  if (cache.data && Date.now() - cache.at < CHART_CACHE_MS) return cache.data;
+
+  const url = process.env[cfg.chartEnv];
+  const errors = [];
+  if (url) {
+    try {
+      const { status, body } = await httpGetText(url);
+      if (status !== 200) {
+        errors.push(`${url} → HTTP ${status}`);
+      } else {
+        const series = parseSeries(body);
+        if (series) {
+          const data = { status: 'ok', source: new URL(url).host, series };
+          cache.at = Date.now();
+          cache.data = data;
+          return data;
+        }
+        errors.push(`${url} → 파싱 실패`);
+      }
+    } catch (e) {
+      errors.push(`${url} → ${e.message}`);
+    }
+  } else {
+    errors.push(`${cfg.chartEnv} 미설정 — 데이터 소스 없음`);
+  }
+  if (cache.data) return { ...cache.data, status: 'stale', errors };
+  return { status: 'unavailable', errors };
+}
+
+function overnightDemoSeries(base, points = 120) {
+  const now = Date.now();
+  const out = [];
+  let v = base;
+  for (let i = points - 1; i >= 0; i--) {
+    v += (Math.random() - 0.5) * (base * 0.006);
+    out.push({ t: now - i * 60000, v: +v.toFixed(2) });
+  }
+  out[out.length - 1].v = +(base + Math.sin(now / 60000) * (base * 0.01)).toFixed(2);
+  return out;
+}
+
+app.get('/api/overnight/:symbol', async (req, res) => {
+  const symbol = String(req.params.symbol || '').toUpperCase();
+  const cfg = OVERNIGHT_SYMBOLS[symbol];
+  if (!cfg) return res.status(404).json({ status: 'error', message: `알 수 없는 종목: ${symbol}` });
+
+  if (process.env[`OVERNIGHT_${symbol}_DEMO`] === '1' || req.query.demo === '1') {
+    const change = +(Math.sin(Date.now() / 60000) * cfg.demoBase * 0.01).toFixed(2);
+    return res.json({
+      status: 'ok',
+      source: 'demo',
+      name: `${cfg.name} (데모)`,
+      value: +(cfg.demoBase + change).toFixed(2),
+      change,
+      changeRate: +((change / cfg.demoBase) * 100).toFixed(2),
+      prevClose: cfg.demoBase,
+      time: new Date().toISOString(),
+      fetchedAt: new Date().toISOString(),
+      session: nightSessionStatus(),
+    });
+  }
+  try {
+    const data = await fetchOvernightQuote(symbol);
+    res.json({ ...data, name: data.name || cfg.name, session: nightSessionStatus() });
+  } catch (e) {
+    res.status(502).json({ status: 'error', message: e.message });
+  }
+});
+
+app.get('/api/overnight/:symbol/history', async (req, res) => {
+  const symbol = String(req.params.symbol || '').toUpperCase();
+  const cfg = OVERNIGHT_SYMBOLS[symbol];
+  if (!cfg) return res.status(404).json({ status: 'error', message: `알 수 없는 종목: ${symbol}` });
+
+  if (process.env[`OVERNIGHT_${symbol}_DEMO`] === '1' || req.query.demo === '1') {
+    return res.json({ status: 'ok', source: 'demo', series: overnightDemoSeries(cfg.demoBase) });
+  }
+  try {
+    res.json(await fetchOvernightHistory(symbol));
+  } catch (e) {
+    res.status(502).json({ status: 'error', message: e.message });
+  }
+});
+
+// sonmul.co.kr 식 경로(/overnight/SYMBOL)도 지원 — 대응하는 정적 페이지로 매핑
+const OVERNIGHT_PAGES = { SAMSUNG: 'overnight-samsung.html', HYNIX: 'overnight-hynix.html' };
+app.get('/overnight/:symbol', (req, res, next) => {
+  const file = OVERNIGHT_PAGES[String(req.params.symbol || '').toUpperCase()];
+  if (!file) return next();
+  res.sendFile(path.join(__dirname, 'public', file));
+});
+
 // 직접 실행하면 서버를 띄우고, Vercel 등 서버리스 환경에서는 app 만 export 한다.
 if (require.main === module) {
   app.listen(PORT, () => {

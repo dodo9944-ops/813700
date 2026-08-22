@@ -8,6 +8,8 @@
 - `/coop.html` — 메타공간 협동조합 소개 및 가입 신청
 - `/bridge.html` — 텔레그램 ↔ 메타공간 브릿지 (온라인)
 - `/kospi.html` — 코스피200 야간선물(EUREX 연계) 실시간 지수 뷰어
+- `/overnight/SAMSUNG`, `/overnight-samsung.html` — 삼성전자 야간선물·독일 GDR 실시간 뷰어
+- `/overnight/HYNIX`, `/overnight-hynix.html` — SK하이닉스 야간선물·독일 GDR 실시간 뷰어
 
 ## 실행
 
@@ -60,6 +62,26 @@ npm start
 > 라이브 시세를 받으려면 배포 환경에서 시세 소스 호스트로의 아웃바운드 접근이
 > 허용돼야 합니다(예: `api.stock.naver.com`). 차단된 환경에서는 `?demo=1`
 > 로 UI를 확인하거나 접근 가능한 소스를 `KOSPI_NIGHT_API_URL` 로 지정하세요.
+
+## 개별 종목 야간(독일 GDR) 뷰어
+
+`/overnight-samsung.html`, `/overnight-hynix.html` (그리고 `/overnight/SAMSUNG`,
+`/overnight/HYNIX` 경로 별칭)은 삼성전자·SK하이닉스가 독일거래소(프랑크푸르트)에서
+GDR(예탁증서)로 거래되는 야간 시세를 코스피200 야간선물과 같은 UI로 보여줍니다.
+
+- `GET /api/overnight/:symbol` — `SYMBOL`은 `SAMSUNG` 또는 `HYNIX`. 정규화된 시세 JSON
+- `GET /api/overnight/:symbol/history` — 차트용 시계열 JSON
+- `?demo=1` — 데모 시세/시계열로 동작 확인
+
+GDR 시세는 확인된 무료 JSON API가 없어 기본값은 소스 미설정(`status:"unavailable"`)
+상태입니다. 실시간 연동이 필요하면 아래 환경변수로 자체 데이터 소스(벤더 API,
+스크레이퍼 등)를 지정하세요.
+
+| 환경변수 | 설명 |
+|----------|------|
+| `OVERNIGHT_SAMSUNG_API_URL` / `OVERNIGHT_SAMSUNG_CHART_URL` | 삼성전자 GDR 시세/차트 소스 |
+| `OVERNIGHT_HYNIX_API_URL` / `OVERNIGHT_HYNIX_CHART_URL` | SK하이닉스 GDR 시세/차트 소스 |
+| `OVERNIGHT_SAMSUNG_DEMO`, `OVERNIGHT_HYNIX_DEMO` | `1`이면 항상 데모 값 반환 |
 
 ## 협동조합 API
 

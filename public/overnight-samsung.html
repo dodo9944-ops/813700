@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>코스피200 야간선물 · 실시간</title>
-  <meta name="description" content="코스피200 야간선물(EUREX 연계) 실시간 지수 뷰어" />
+  <title>삼성전자 야간선물 · 독일 GDR 실시간</title>
+  <meta name="description" content="삼성전자 야간선물·독일 GDR 연동 실시간 시세 뷰어" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -14,8 +14,8 @@
       <a href="index.html">메타스페이스</a>
       <a href="coop.html">조합 홈페이지</a>
       <a href="bridge.html">텔레봇 브릿지</a>
-      <a href="kospi.html" class="active">야간선물</a>
-      <a href="overnight-samsung.html">삼성 GDR</a>
+      <a href="kospi.html">야간선물</a>
+      <a href="overnight-samsung.html" class="active">삼성 GDR</a>
       <a href="overnight-hynix.html">하이닉스 GDR</a>
     </div>
     <span class="status" id="sessionPill">세션 확인 중…</span>
@@ -23,16 +23,16 @@
 
   <header class="hero small">
     <div class="hero-inner">
-      <h1>코스피200 야간선물</h1>
-      <p>KRX 파생상품 야간시장의 코스피200 선물 실시간 지수. 다음 거래일 국내 증시
-        시초가 방향을 가늠하는 선행 지표입니다. 거래시간 평일 18:00 ~ 익일 06:00 (KST).</p>
+      <h1>삼성전자 야간선물 · 독일 GDR</h1>
+      <p>국내 정규장 마감 후 독일거래소(프랑크푸르트)에서 연동 거래되는 삼성전자 GDR
+        가격을 따라 다음 거래일 방향성을 가늠하는 참고 지표입니다.</p>
     </div>
   </header>
 
   <main class="kospi-wrap">
     <section class="quote-card" id="quoteCard">
       <div class="quote-head">
-        <span class="quote-name" id="quoteName">코스피200 야간선물</span>
+        <span class="quote-name" id="quoteName">삼성전자 야간선물 · 독일 GDR</span>
         <span class="badge" id="srcBadge" hidden></span>
       </div>
 
@@ -44,7 +44,7 @@
         <span class="chart-note" id="chartNote"></span>
       </div>
       <svg class="chart" id="chart" viewBox="0 0 720 300"
-           role="img" aria-label="코스피200 야간선물 가격 추이 차트"></svg>
+           role="img" aria-label="삼성전자 야간선물 · 독일 GDR 가격 추이 차트"></svg>
 
       <div class="quote-meta">
         <div><span>전일종가</span><b id="mPrev">—</b></div>
@@ -61,37 +61,37 @@
     </section>
 
     <aside class="info-card">
-      <h3>야간선물이란?</h3>
-      <p>정규장 마감 후 한국거래소(KRX) 파생상품 야간시장에서 코스피200 선물이
-        거래됩니다. (2025년 6월 EUREX·CME 연계거래 종료 후 KRX 자체 야간시장으로 전환)
-        미국·유럽 증시 흐름이 반영돼 다음 날 국내 증시 방향성을 예측하는 데 쓰입니다.</p>
+      <h3>GDR 연동 시세란?</h3>
+      <p>GDR(Global Depositary Receipt)은 국내 상장 주식을 해외 거래소에서 예탁증서
+        형태로 거래할 수 있게 한 상품입니다. 삼성전자 GDR은 독일거래소에서 국내
+        정규장 마감 이후에도 거래되어, 미국·유럽 시장 흐름을 반영한 다음 날 국내
+        증시의 참고 지표로 활용됩니다.</p>
       <ul>
-        <li>거래시간: 평일 18:00 ~ 익일 06:00 (KST)</li>
-        <li>기초자산: 코스피200 지수</li>
-        <li>운영: 한국거래소(KRX) 야간시장</li>
+        <li>거래시간: 평일 18:00 ~ 익일 06:00 (KST, 참고용)</li>
+        <li>기초자산: 삼성전자(005930) 예탁증서(GDR)</li>
+        <li>연동 거래소: 독일거래소(프랑크푸르트)</li>
       </ul>
       <p class="disclaimer">※ 본 화면은 정보 제공용이며 투자 판단의 책임은
-        이용자에게 있습니다. 시세는 지연·오차가 있을 수 있습니다.</p>
+        이용자에게 있습니다. GDR 시세는 환율·시차·유동성 차이로 국내 정규장
+        가격과 괴리가 있을 수 있고, 데이터 소스 미설정 시 데모 값으로 표시됩니다.</p>
     </aside>
   </main>
 
-  <section class="grid">
-    <a class="card" href="overnight-samsung.html">
-      <h3>삼성전자 야간선물 · 독일 GDR</h3>
-      <p>프랑크푸르트 GDR 연동 실시간 시세와 1분봉 차트를 확인하세요.</p>
-    </a>
-    <a class="card" href="overnight-hynix.html">
-      <h3>SK하이닉스 야간선물 · 독일 GDR</h3>
-      <p>프랑크푸르트 GDR 연동 실시간 시세와 1분봉 차트를 확인하세요.</p>
-    </a>
-  </section>
-
   <footer class="foot">
     <span>© 2026 메타공간 협동조합</span>
-    <span>코스피200 야간선물 뷰어</span>
+    <span>삼성전자 야간선물 · 독일 GDR 뷰어</span>
   </footer>
 
   <script src="config.js"></script>
-  <script src="kospi.js"></script>
+  <script>
+    window.OVERNIGHT_CONFIG = {
+      symbol: 'SAMSUNG',
+      name: '삼성전자 야간선물 · 독일 GDR',
+      apiQuote: '/api/overnight/SAMSUNG',
+      apiHistory: '/api/overnight/SAMSUNG/history',
+      demoBase: 118.4,
+    };
+  </script>
+  <script src="overnight.js"></script>
 </body>
 </html>
