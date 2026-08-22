@@ -31,7 +31,7 @@
     global: document.getElementById('grid-global'),
     stock: document.getElementById('grid-stock'),
   };
-  const sessionPill = document.getElementById('sessionPill');
+  const sessionBadge = document.getElementById('sessionBadge');
   const clockEl = document.getElementById('clock');
 
   const fmt = (n, d = 2) =>
@@ -47,11 +47,12 @@
 
   function tickClock() {
     const s = nightSession();
-    if (clockEl) clockEl.textContent = `${s.kstTime} KST`;
-    if (sessionPill) {
-      sessionPill.textContent = s.open ? `장중 · ${s.kstTime} KST` : `장외 · ${s.kstTime} KST`;
-      sessionPill.classList.toggle('on', s.open);
-      sessionPill.classList.toggle('off', !s.open);
+    if (clockEl) clockEl.textContent = `KST ${s.kstTime}`;
+    if (sessionBadge) {
+      sessionBadge.textContent = s.open ? '장중' : '장외';
+      sessionBadge.title = s.open ? `장중 · ${s.kstTime} KST` : `장외 · ${s.kstTime} KST`;
+      sessionBadge.classList.toggle('on', s.open);
+      sessionBadge.classList.toggle('off', !s.open);
     }
   }
 
@@ -72,7 +73,7 @@
       </div>
       <div class="tk-value">—</div>
       <div class="tk-change">불러오는 중…</div>
-      <div class="tk-vol"></div>
+      <div class="tk-vol">거래량 —</div>
     `;
     grid.appendChild(el);
     cards[sym.id] = {
@@ -84,6 +85,15 @@
   });
 
   // ── 데모 값 ──────────────────────────────────────────────────────
+  // 거래량은 실데이터 소스가 없어 화면 시연용으로만 채운다(실거래 API 연결 시
+  // 해당 소스의 실제 거래량으로 대체하도록 확장 가능).
+  const DEMO_VOLUME = {
+    kospi_night: 20260, kospi200_fut: 117863, kosdaq150_fut: 244047,
+    ewy_perp: 584274.98, samsung_perp: 1549883.12, hynix_perp: 1410063.04,
+    stock_005930: 27746471, stock_000660: 4274294, stock_009150: 702691,
+    stock_005380: 373056, stock_402340: 602332, stock_011070: 223664,
+  };
+
   function demoFor(sym) {
     const base = { kospi_night: 349.85, kospi200_fut: 349.85, kosdaq150_fut: 1395.6,
       ewy_perp: 178.57, samsung_perp: 194.35, hynix_perp: 1247.92,
@@ -94,6 +104,7 @@
     return {
       status: 'ok', source: 'demo', value: +(base + change).toFixed(2), change,
       changeRate: +((change / base) * 100).toFixed(2),
+      volume: DEMO_VOLUME[sym.id] ?? null,
     };
   }
 
@@ -104,6 +115,7 @@
     if (!d || d.status === 'unavailable' || d.status === 'error') {
       c.value.textContent = '시세 없음';
       c.change.textContent = '데이터 소스 없음';
+      c.vol.textContent = '거래량 —';
       c.el.classList.remove('up', 'down');
       c.el.classList.add('flat');
       return;
@@ -114,9 +126,9 @@
     c.change.textContent = `${sign}${fmt(d.change ?? 0, decimals)}${rate}`;
     c.el.classList.remove('up', 'down', 'flat');
     c.el.classList.add(d.change > 0 ? 'up' : d.change < 0 ? 'down' : 'flat');
-    if (d.source === 'demo') c.vol.textContent = '데모 시세';
-    else if (d.status === 'stale') c.vol.textContent = '지연(stale)';
-    else c.vol.textContent = '';
+    const volText = d.volume != null ? `거래량 ${fmt(d.volume, 0)}` : '거래량 —';
+    const tag = d.source === 'demo' ? ' · 데모' : d.status === 'stale' ? ' · 지연' : '';
+    c.vol.textContent = volText + tag;
   }
 
   async function loadSymbol(sym) {
