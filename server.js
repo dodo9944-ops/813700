@@ -607,6 +607,114 @@ app.get('/overnight/:symbol', (req, res, next) => {
   res.sendFile(path.join(__dirname, 'public', file));
 });
 
+// ────────────────────────────────────────────────────────────────────────
+// 멀티 심볼 시세 레지스트리 — 대시보드(전체 종목 바로가기)용
+//
+// 코스피200 야간선물과 같은 원칙(방어적 파싱·캐시·가짜 시세 금지)을 여러
+// 종목/지수/환율/무기한 계약에 공통 적용한다. 국내 개별 종목은 네이버 금융
+// 모바일 API의 잘 알려진 URL 패턴을 기본값으로 시도하고, 그 외(선물/해외
+// 지수/원자재/환율/24시간 무기한 계약)는 확인된 무료 API가 없어 소스가
+// 비어 있다 — 필요하면 QUOTE_<ID>_API_URL 환경변수로 지정한다.
+// ────────────────────────────────────────────────────────────────────────
+
+function naverStockUrl(code) {
+  return `https://m.stock.naver.com/api/stock/${code}/basic`;
+}
+
+const QUOTE_SYMBOLS = {
+  kospi200_fut: { name: 'KOSPI200 선물', category: 'futures', demoBase: 349.85 },
+  kosdaq150_fut: { name: 'KOSDAQ150 선물', category: 'futures', demoBase: 1395.6 },
+  ewy_perp: { name: '한국 ETF 무기한', ticker: 'EWYUSDT', category: 'perp', demoBase: 178.57 },
+  samsung_perp: { name: '삼성전자 무기한', ticker: 'SAMSUNGUSDT', category: 'perp', demoBase: 194.35 },
+  hynix_perp: { name: 'SK하이닉스 무기한', ticker: 'SKHYNIXUSDT', category: 'perp', demoBase: 1247.92 },
+  nasdaq_fut: { name: '나스닥 선물', category: 'global', demoBase: 29374.0 },
+  wti_fut: { name: 'WTI 원유 선물', category: 'global', demoBase: 86.64 },
+  usdkrw: { name: '원/달러 환율', category: 'global', demoBase: 1385.0 },
+  stock_005930: { name: '삼성전자', code: '005930', category: 'stock', demoBase: 281500 },
+  stock_000660: { name: 'SK하이닉스', code: '000660', category: 'stock', demoBase: 1730000 },
+  stock_009150: { name: '삼성전기', code: '009150', category: 'stock', demoBase: 1316000 },
+  stock_005380: { name: '현대자동차', code: '005380', category: 'stock', demoBase: 415000 },
+  stock_402340: { name: 'SK스퀘어', code: '402340', category: 'stock', demoBase: 1123000 },
+  stock_011070: { name: 'LG이노텍', code: '011070', category: 'stock', demoBase: 550000 },
+};
+
+const quoteCache = {};
+
+function quoteSourceUrl(id) {
+  const cfg = QUOTE_SYMBOLS[id];
+  const envUrl = process.env[`QUOTE_${id.toUpperCase()}_API_URL`];
+  if (envUrl) return envUrl;
+  if (cfg.code) return naverStockUrl(cfg.code); // 국내 종목만 best-effort 기본 소스
+  return null;
+}
+
+async function fetchQuoteSymbol(id) {
+  const cfg = QUOTE_SYMBOLS[id];
+  const cache = (quoteCache[id] = quoteCache[id] || { at: 0, data: null });
+  if (cache.data && Date.now() - cache.at < KOSPI_CACHE_MS) return cache.data;
+
+  const url = quoteSourceUrl(id);
+  const errors = [];
+  if (url) {
+    try {
+      const { status, body } = await httpGetText(url);
+      if (status !== 200) {
+        errors.push(`${url} → HTTP ${status}`);
+      } else {
+        const quote = parseQuote(body);
+        if (quote) {
+          const data = { status: 'ok', source: new URL(url).host, fetchedAt: new Date().toISOString(), ...quote };
+          cache.at = Date.now();
+          cache.data = data;
+          return data;
+        }
+        errors.push(`${url} → 파싱 실패`);
+      }
+    } catch (e) {
+      errors.push(`${url} → ${e.message}`);
+    }
+  } else {
+    errors.push(`QUOTE_${id.toUpperCase()}_API_URL 미설정 — 데이터 소스 없음`);
+  }
+  if (cache.data) return { ...cache.data, status: 'stale', errors };
+  return { status: 'unavailable', errors, fetchedAt: new Date().toISOString() };
+}
+
+app.get('/api/quote/:id', async (req, res) => {
+  const id = String(req.params.id || '');
+  const cfg = QUOTE_SYMBOLS[id];
+  if (!cfg) return res.status(404).json({ status: 'error', message: `알 수 없는 종목: ${id}` });
+
+  if (process.env[`QUOTE_${id.toUpperCase()}_DEMO`] === '1' || req.query.demo === '1') {
+    const change = +(Math.sin((Date.now() / 60000) + id.length) * cfg.demoBase * 0.012).toFixed(2);
+    return res.json({
+      status: 'ok',
+      source: 'demo',
+      name: `${cfg.name} (데모)`,
+      value: +(cfg.demoBase + change).toFixed(2),
+      change,
+      changeRate: +((change / cfg.demoBase) * 100).toFixed(2),
+      prevClose: cfg.demoBase,
+      time: new Date().toISOString(),
+      fetchedAt: new Date().toISOString(),
+    });
+  }
+  try {
+    const data = await fetchQuoteSymbol(id);
+    res.json({ ...data, name: data.name || cfg.name });
+  } catch (e) {
+    res.status(502).json({ status: 'error', message: e.message });
+  }
+});
+
+app.get('/api/quote-symbols', (req, res) => {
+  res.json(
+    Object.entries(QUOTE_SYMBOLS).map(([id, cfg]) => ({
+      id, name: cfg.name, category: cfg.category, ticker: cfg.ticker || cfg.code || null,
+    }))
+  );
+});
+
 // 직접 실행하면 서버를 띄우고, Vercel 등 서버리스 환경에서는 app 만 export 한다.
 if (require.main === module) {
   app.listen(PORT, () => {

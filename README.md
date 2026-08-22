@@ -10,6 +10,7 @@
 - `/kospi.html` — 코스피200 야간선물(EUREX 연계) 실시간 지수 뷰어
 - `/overnight/SAMSUNG`, `/overnight-samsung.html` — 삼성전자 야간선물·독일 GDR 실시간 뷰어
 - `/overnight/HYNIX`, `/overnight-hynix.html` — SK하이닉스 야간선물·독일 GDR 실시간 뷰어
+- `/dashboard.html` — 전체 종목 바로가기 + 카테고리별(선물·무기한·해외지수·주식) 실시간 시세 대시보드
 
 ## 실행
 
@@ -82,6 +83,26 @@ GDR 시세는 확인된 무료 JSON API가 없어 기본값은 소스 미설정(
 | `OVERNIGHT_SAMSUNG_API_URL` / `OVERNIGHT_SAMSUNG_CHART_URL` | 삼성전자 GDR 시세/차트 소스 |
 | `OVERNIGHT_HYNIX_API_URL` / `OVERNIGHT_HYNIX_CHART_URL` | SK하이닉스 GDR 시세/차트 소스 |
 | `OVERNIGHT_SAMSUNG_DEMO`, `OVERNIGHT_HYNIX_DEMO` | `1`이면 항상 데모 값 반환 |
+
+## 실시간 시세 대시보드 (`/dashboard.html`)
+
+sonmul.co.kr 홈페이지처럼 **전체 종목 바로가기** 그리드와 카테고리별 시세 카드
+(선물 / 무기한(24·7) / 해외 지수·원자재·환율 / 주식)를 한 화면에 모은 포털입니다.
+코스피200 야간선물 카드는 기존 `/api/kospi-night`를 그대로 쓰고, 나머지 종목은
+공용 멀티 심볼 레지스트리를 사용합니다.
+
+- `GET /api/quote/:id` — 종목별 정규화된 시세 JSON. `id` 목록은 `GET /api/quote-symbols`
+- `GET /api/quote/:id?demo=1` — 데모 시세로 동작 확인
+- 국내 개별 종목(삼성전자 `005930`, SK하이닉스 `000660`, 삼성전기 `009150`,
+  현대자동차 `005380`, SK스퀘어 `402340`, LG이노텍 `011070`)은 네이버 금융
+  모바일 API의 잘 알려진 URL 패턴(`m.stock.naver.com/api/stock/{code}/basic`)을
+  기본 소스로 시도합니다.
+- 나머지(KOSPI200/KOSDAQ150 선물, 나스닥 선물, WTI, 원/달러 환율, 무기한
+  계약 3종)는 확인된 무료 API가 없어 기본은 `status:"unavailable"`이며,
+  `QUOTE_<ID>_API_URL` 환경변수(예: `QUOTE_NASDAQ_FUT_API_URL`)로 자체 소스를
+  지정할 수 있습니다. `QUOTE_<ID>_DEMO=1` 로 개별 데모 고정도 가능합니다.
+- 프런트엔드(`dashboard.js`)는 카드 갱신 실패 시 다른 페이지와 동일하게
+  데모 값으로 폴백해 화면이 비어 보이지 않도록 합니다.
 
 ## 협동조합 API
 

@@ -249,3 +249,79 @@ a.card:hover { border-color: var(--ink, #ccc); }
 .info-card p { color: var(--muted); font-size: 14px; line-height: 1.6; }
 .info-card ul { color: var(--muted); font-size: 13px; padding-left: 18px; line-height: 1.7; }
 .info-card .disclaimer { font-size: 11px; color: var(--muted); margin-top: 14px; opacity: 0.8; }
+
+/* ── 시세 대시보드 (전체 종목 바로가기) ───────────────────────── */
+.dash-top { padding: 20px 28px 4px; max-width: 1040px; margin: 0 auto; }
+.dash-top-inner {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+}
+.dash-top h1 { margin: 0; font-size: 22px; }
+.dash-clock {
+  font-variant-numeric: tabular-nums; color: var(--muted); font-size: 14px;
+  border: 1px solid var(--border); border-radius: 999px; padding: 4px 12px;
+}
+.dash-wrap { max-width: 1040px; margin: 0 auto; padding: 8px 28px 60px; }
+.dash-wrap h2 { font-size: 16px; margin: 30px 0 12px; }
+.dash-wrap > section:first-child h2 { margin-top: 6px; }
+
+.quicknav-grid {
+  display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+}
+.quicknav-btn {
+  display: block; text-align: center; text-decoration: none; color: var(--ink);
+  background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+  padding: 14px 10px; font-size: 14px; font-weight: 600; transition: border-color .15s, background .15s;
+}
+.quicknav-btn:hover { border-color: var(--accent); }
+.quicknav-btn.active { border-color: var(--accent); background: rgba(124,92,255,0.12); }
+
+.ticker-grid {
+  display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+}
+.ticker-card {
+  display: block; text-decoration: none; color: var(--ink);
+  background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 16px;
+}
+a.ticker-card:hover { border-color: var(--muted); }
+.tk-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.tk-name { font-size: 13px; color: var(--muted); }
+.tk-ticker { font-size: 11px; color: var(--muted); opacity: 0.7; font-variant-numeric: tabular-nums; }
+.tk-value { font-size: 24px; font-weight: 800; margin: 6px 0 2px; font-variant-numeric: tabular-nums; }
+.tk-change { font-size: 13px; font-weight: 600; color: var(--muted); }
+.tk-vol { font-size: 11px; color: var(--muted); opacity: 0.75; margin-top: 6px; }
+.ticker-card.up .tk-value, .ticker-card.up .tk-change { color: var(--err); }
+.ticker-card.down .tk-value, .ticker-card.down .tk-change { color: var(--accent-2); }
+
+.info-cards {
+  display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-top: 12px;
+}
+.info-cards > div {
+  background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 16px;
+}
+.info-cards span { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+.info-cards b { font-size: 17px; }
+.info-cards small { display: block; margin-top: 4px; font-size: 11px; color: var(--muted); }
+
+.dash-faq details {
+  background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+  padding: 12px 16px; margin-bottom: 10px;
+}
+.dash-faq summary { cursor: pointer; font-weight: 600; font-size: 14px; }
+.dash-faq p { color: var(--muted); font-size: 13px; line-height: 1.6; margin: 10px 0 0; }
+
+.guide-grid {
+  display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+.guide-card {
+  display: block; text-decoration: none;
+  background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 16px;
+}
+.guide-card:hover { border-color: var(--accent); }
+.guide-card h3 { margin: 0 0 8px; font-size: 14px; color: var(--accent-2); }
+.guide-card p { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+.dash-footer { flex-direction: column; align-items: flex-start; gap: 8px; padding: 20px 28px 40px; }
+.dash-footer nav { display: flex; gap: 14px; flex-wrap: wrap; }
+.dash-footer nav a { color: var(--muted); text-decoration: none; font-size: 13px; }
+.dash-footer nav a:hover { color: var(--ink); }
+.dash-footer .disclaimer { font-size: 12px; color: var(--muted); line-height: 1.6; max-width: 760px; }
