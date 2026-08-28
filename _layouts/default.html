@@ -53,6 +53,72 @@
 
   {{ content }}
 
+  <!-- 하단 푸터 -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div class="footer-logo">
+          <span class="logo-icon">
+            <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" width="26" height="26">
+              <rect x="4" y="4" width="24" height="24" rx="3" fill="none" stroke="#c8a45a" stroke-width="2"/>
+              <path d="M10 10h5v12h-5zM17 10h5v8h-5z" fill="none" stroke="#c8a45a" stroke-width="1.5"/>
+            </svg>
+          </span>
+          <div class="footer-logo-text">
+            <strong>(주)세울엔지니어링</strong>
+            <small>SEUL ENGINEERING</small>
+          </div>
+        </div>
+
+        <div class="footer-contact">
+          <a href="mailto:dodo6666@naver.com">dodo6666@naver.com</a>
+          <span class="footer-divider" aria-hidden="true">|</span>
+          <a href="tel:010-2230-9210">010-2230-9210</a>
+        </div>
+      </div>
+
+      <div class="footer-links">
+        <div class="footer-privacy">
+          <button type="button" class="footer-privacy-toggle" aria-expanded="false" aria-controls="footer-group-menu">
+            개인정보처리방침
+            <svg class="footer-chevron" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <ul id="footer-group-menu" class="footer-group-menu" hidden>
+            <!-- 그룹사(계열사)별 개인정보처리방침 링크: 실제 그룹사명/URL로 교체하세요 -->
+            <li><a href="#" target="_blank" rel="noopener">(주)세울엔지니어링</a></li>
+          </ul>
+        </div>
+        <a href="/pages/contact.html" class="footer-link">고객센터</a>
+      </div>
+
+      <p class="footer-copyright">
+        경기도 하남시 감일백제로 70, 204동 1104호 &nbsp;·&nbsp; Copyright &copy; (주)세울엔지니어링. All rights reserved.
+      </p>
+    </div>
+  </footer>
+
+  <script>
+  // 푸터 개인정보처리방침 - 그룹사 연결 드롭다운
+  (function() {
+    var toggle = document.querySelector('.footer-privacy-toggle');
+    var menu = document.getElementById('footer-group-menu');
+    if (!toggle || !menu) return;
+
+    toggle.addEventListener('click', function() {
+      var expanded = toggle.getAttribute('aria-expanded') === 'true';
+      toggle.setAttribute('aria-expanded', String(!expanded));
+      menu.hidden = expanded;
+    });
+
+    document.addEventListener('click', function(e) {
+      if (!toggle.contains(e.target) && !menu.contains(e.target)) {
+        toggle.setAttribute('aria-expanded', 'false');
+        menu.hidden = true;
+      }
+    });
+  })();
+  </script>
+
   <script>
   // 모바일 수평 메뉴 터치 스와이프
   (function() {
