@@ -19,22 +19,27 @@ a {
 }
 
 /* ===== Mobile Top Bar (모바일 전용) ===== */
-.mobile-top-bar {
-  display: none;
-}
-
-.mobile-scroll-menu {
+.mobile-header-fixed {
   display: none;
 }
 
 @media (max-width: 768px) {
-  .mobile-top-bar {
+  /* 탑바 + 메뉴를 하나의 고정 래퍼로 묶어서 항상 서로 정확히 붙어 있도록 함 */
+  .mobile-header-fixed {
     display: block;
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     z-index: 1000;
+  }
+
+  /* 고정 헤더 높이만큼 여백 (기본값, JS가 로드되면 정확한 높이로 보정) */
+  body {
+    padding-top: 106px;
+  }
+
+  .mobile-top-bar {
     background: #ffffff;
   }
 
@@ -76,24 +81,42 @@ a {
   }
 
   .hamburger-btn {
+    position: relative;
     background: none;
     border: none;
     cursor: pointer;
     padding: 4px;
+    width: 36px;
+    height: 36px;
   }
 
   .hamburger-btn svg {
     fill: #222;
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+  }
+
+  .hamburger-btn .icon-close {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+
+  .hamburger-btn[aria-expanded="true"] .icon-open {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+
+  .hamburger-btn[aria-expanded="true"] .icon-close {
+    opacity: 1;
+    transform: scale(1);
   }
 
   /* ===== Mobile Scroll Menu (모바일 전용) ===== */
   .mobile-scroll-menu {
+    position: relative;
     display: block;
-    position: fixed;
-    top: 56px;
-    left: 0;
-    right: 0;
-    z-index: 999;
     background: #ffffff;
     border-bottom: 1px solid #e8e8e8;
   }
@@ -134,9 +157,53 @@ a {
     color: #222;
   }
 
-  /* 콘텐츠 상단 여백 (고정바 + 메뉴바 높이) */
-  body {
-    padding-top: 100px;
+  /* 스크롤로 더 볼 항목이 있음을 알리는 우측 힌트 (흰 배경 위에서도 보이도록 그림자 + 화살표 사용) */
+  .scroll-fade {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 1px;
+    width: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 4px;
+    box-shadow: inset -14px 0 10px -8px rgba(0, 0, 0, 0.12);
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+
+  .scroll-fade::after {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-top: 2px solid #b4b4b4;
+    border-right: 2px solid #b4b4b4;
+    transform: rotate(45deg);
+  }
+
+  /* 햄버거 버튼으로 펼친 상태: 전체 메뉴를 줄바꿈된 그리드로 표시 */
+  .mobile-scroll-menu.expanded .scroll-menu-track {
+    flex-wrap: wrap;
+    overflow: visible;
+    padding: 10px 12px 14px;
+    gap: 8px;
+  }
+
+  .mobile-scroll-menu.expanded .menu-item {
+    flex: 1 1 calc(50% - 8px);
+    text-align: center;
+    border: 1px solid #e8e8e8;
+    border-radius: 8px;
+    padding: 12px 8px;
+  }
+
+  .mobile-scroll-menu.expanded .menu-item.active {
+    border-color: #222;
+  }
+
+  .mobile-scroll-menu.expanded .scroll-fade {
+    display: none;
   }
 }
 
@@ -490,8 +557,31 @@ a {
 }
 
 .form-group input[type="file"] {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #fafafa;
   font-size: 0.85rem;
   color: #666;
+}
+
+.form-group input[type="file"]::file-selector-button {
+  padding: 6px 14px;
+  margin-right: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #fff;
+  color: #555;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.form-group input[type="file"]::file-selector-button:hover {
+  background: #f0f0f0;
+  border-color: #c8a45a;
 }
 
 .file-hint {
@@ -669,5 +759,50 @@ a {
 
   .sidebar-card {
     min-width: auto;
+  }
+}
+
+/* ===== Site Footer ===== */
+.site-footer {
+  background: #12141f;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 40px 24px 32px;
+  text-align: center;
+  color: #8a8dab;
+  font-size: 0.85rem;
+  line-height: 1.9;
+}
+
+.site-footer strong {
+  color: #e3e5f5;
+  font-size: 0.95rem;
+}
+
+.site-footer .footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  margin: 14px 0 16px;
+  flex-wrap: wrap;
+}
+
+.site-footer .footer-links a {
+  color: #7b8cde;
+  font-weight: 500;
+}
+
+.site-footer .footer-links a:hover {
+  color: #9eadff;
+}
+
+.site-footer .footer-copy {
+  font-size: 0.78rem;
+  color: #5f6280;
+}
+
+@media (max-width: 768px) {
+  .site-footer {
+    padding: 32px 20px 28px;
+    font-size: 0.8rem;
   }
 }
