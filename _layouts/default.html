@@ -12,63 +12,46 @@
 </head>
 <body>
 
-  <!-- 모바일 고정 헤더 (탑바 + 메뉴를 한 래퍼로 묶어 높이가 자동으로 맞춰짐) -->
-  <div class="mobile-header-fixed">
-    <header class="mobile-top-bar">
-      <div class="top-bar-inner">
-        <div class="top-bar-logo">
-          <span class="logo-icon">
-            <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" width="28" height="28">
-              <rect x="4" y="4" width="24" height="24" rx="3" fill="none" stroke="#fff" stroke-width="2"/>
-              <path d="M10 10h5v12h-5zM17 10h5v8h-5z" fill="none" stroke="#fff" stroke-width="1.5"/>
-            </svg>
-          </span>
-          <div class="logo-text">
-            <strong>(주)세울엔지니어링</strong>
-            <small>SEUL ENGINEERING</small>
-          </div>
+  <!-- 모바일 고정 헤더 -->
+  <header class="mobile-top-bar">
+    <div class="top-bar-inner">
+      <div class="top-bar-logo">
+        <span class="logo-icon">
+          <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" width="28" height="28">
+            <rect x="4" y="4" width="24" height="24" rx="3" fill="none" stroke="#fff" stroke-width="2"/>
+            <path d="M10 10h5v12h-5zM17 10h5v8h-5z" fill="none" stroke="#fff" stroke-width="1.5"/>
+          </svg>
+        </span>
+        <div class="logo-text">
+          <strong>(주)세울엔지니어링</strong>
+          <small>SEUL ENGINEERING</small>
         </div>
-        <button class="hamburger-btn" aria-label="전체 메뉴 열기" aria-expanded="false">
-          <svg class="icon-open" viewBox="0 0 24 24" width="28" height="28" fill="#fff">
-            <path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/>
-          </svg>
-          <svg class="icon-close" viewBox="0 0 24 24" width="28" height="28" fill="#fff">
-            <path d="M6.4 4.98L4.98 6.4 10.59 12l-5.61 5.6 1.42 1.42L12 13.41l5.6 5.61 1.42-1.42L13.41 12l5.61-5.6-1.42-1.42L12 10.59z"/>
-          </svg>
-        </button>
       </div>
-    </header>
+      <button class="hamburger-btn" aria-label="메뉴">
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="#fff">
+          <path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/>
+        </svg>
+      </button>
+    </div>
+  </header>
 
-    <!-- 모바일 수평 스크롤 메뉴 -->
-    <nav class="mobile-scroll-menu">
-      <div class="scroll-menu-track">
-        <a href="#company" class="menu-item">회사소개</a>
-        <a href="#history" class="menu-item">세울의 길</a>
-        <a href="#service" class="menu-item active">사업분야</a>
-        <a href="#portfolio" class="menu-item">업무실적</a>
-        <a href="#resources" class="menu-item">자료실</a>
-        <a href="#community" class="menu-item">커뮤니티</a>
-        <a href="#location" class="menu-item">내 위치</a>
-        <a href="#feasibility" class="menu-item">사업성 검토</a>
-        <a href="/pages/contact.html" class="menu-item">고객센터</a>
-        <a href="#intranet" class="menu-item">인트라넷</a>
-      </div>
-      <span class="scroll-fade" aria-hidden="true"></span>
-    </nav>
-  </div>
+  <!-- 모바일 수평 스크롤 메뉴 -->
+  <nav class="mobile-scroll-menu">
+    <div class="scroll-menu-track">
+      <a href="#company" class="menu-item">회사소개</a>
+      <a href="#history" class="menu-item">세울의 길</a>
+      <a href="#service" class="menu-item active">사업분야</a>
+      <a href="#portfolio" class="menu-item">업무실적</a>
+      <a href="#resources" class="menu-item">자료실</a>
+      <a href="#community" class="menu-item">커뮤니티</a>
+      <a href="#location" class="menu-item">내 위치</a>
+      <a href="#feasibility" class="menu-item">사업성 검토</a>
+      <a href="/pages/contact.html" class="menu-item">고객센터</a>
+      <a href="#intranet" class="menu-item">인트라넷</a>
+    </div>
+  </nav>
 
   {{ content }}
-
-  <footer class="site-footer">
-    <p><strong>(주)세울엔지니어링</strong> · 도시정비 전문 엔지니어링</p>
-    <p>경기도 하남시 감일백제로 70, 204동 1104호 (하남지사)</p>
-    <p>전화 010-2230-9210 · 이메일 dodo6666@naver.com</p>
-    <div class="footer-links">
-      <a href="/">홈</a>
-      <a href="/pages/contact.html">고객센터</a>
-    </div>
-    <p class="footer-copy">&copy; <span id="footer-year"></span> Seul Engineering Co., Ltd. All rights reserved.</p>
-  </footer>
 
   <script>
   // 모바일 수평 메뉴 터치 스와이프
@@ -97,44 +80,6 @@
       isDragging = false;
       track.style.scrollBehavior = 'smooth';
     }, { passive: true });
-
-    // 스크롤 끝에 도달하면 우측 페이드 힌트 숨김
-    var fade = document.querySelector('.scroll-fade');
-    function updateFade() {
-      if (!fade) return;
-      var atEnd = track.scrollLeft + track.clientWidth >= track.scrollWidth - 2;
-      fade.style.opacity = atEnd ? '0' : '1';
-    }
-    track.addEventListener('scroll', updateFade, { passive: true });
-    updateFade();
-  })();
-
-  // 고정 헤더 실제 높이만큼 본문 여백 확보 (텍스트 줄바꿈 등으로 높이가 바뀌어도 안전)
-  // 햄버거 버튼: 전체 메뉴를 펼쳐/접어 보여줌
-  (function() {
-    var header = document.querySelector('.mobile-header-fixed');
-    var menu = document.querySelector('.mobile-scroll-menu');
-    var btn = document.querySelector('.hamburger-btn');
-    if (!header) return;
-
-    function syncHeaderHeight() {
-      document.body.style.paddingTop = header.getBoundingClientRect().height + 'px';
-    }
-
-    syncHeaderHeight();
-    window.addEventListener('resize', syncHeaderHeight);
-    window.addEventListener('load', syncHeaderHeight);
-
-    if (btn && menu) {
-      btn.addEventListener('click', function() {
-        var expanded = menu.classList.toggle('expanded');
-        btn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
-        syncHeaderHeight();
-      });
-    }
-
-    var yearEl = document.getElementById('footer-year');
-    if (yearEl) yearEl.textContent = new Date().getFullYear();
   })();
   </script>
 
